@@ -1,21 +1,42 @@
-include ../Makefile.common
+CPP = g++
+ARMA_INCLUDE=-I/home/yuguangyang/Downloads/armadillo-5.100.2/include
+CXXFLAGS = -std=c++0x $(ARMA_INCLUDE) -I./include -I/usr/local/include -I/opt/boost/boost_1_57_0 -D__LINUX -DARMA_DONT_USE_WRAAPER
+DEBUGFLAG=-DDEBUG -g3
+RELEASEFLAG= -O3 -march=native -DARMA_NO_DEBUG
+CXXFLAGS += $(RELEASEFLAG)
+SRCS1 = $(wildcard src/*.cpp)
+OBJ1 = $(SRCS1:%.cpp=%.o)
+SRCS2 = $(wildcard src/*.cc)
+OBJ2 = $(SRCS2:%.cc=%.o)
+#SRCS3=$(wildcard src/*.c)
+#OBJ3 = $(SRCS3:.c=.o)
+OBJ = $(OBJ1) $(OBJ2) $(OBJ3)
 
-all: test_NNRL.exe
 
-OBJ = NN_RL_Driver.o Model_PoleSimple.o Model_PoleFull.o Trainer.o NN_RLSolverBase.o NN_RLSolverMLP.o NN_RLSolverMultiMLP.o NN_RLSolverRNN.o RLSolver_2DTable.o
+# Specify extensions of files to delete when cleaning
+CLEANEXTS   = o a 
 
-test_NNRL.exe: $(OBJ)
-	$(CXX) -o $@ $^ $(LDFLAG) 
+# Specify the target file and the install directory
+OUTPUTFILE  = librlsolver.a
+INSTALLDIR  = lib
+
+$(OUTPUTFILE) : $(OBJ)
+	ar ru $@ $^
+	ranlib $@
+
+%.o : src/%.cpp
+	$(CPP) -c $(CXXFLAGS) $^
+	
+%.o : src/%.cc
+	$(CPP) -c $(CXXFLAGS) $^
 
 
-
-
-
-%.o:%.cpp
-	$(CXX) -c $(CXXFLAGS) $(DEBUGFLAG) $^
-
-Trainer.o: ../Trainer/Trainer.cpp
-	$(CXX) -c $(CXXFLAGS) $^
+listfile:
+	echo $(OBJ)
 
 clean:
-	rm *.o *.exe
+	for file in $(CLEANEXTS); do rm -f src/*.$$file; done
+	
+install:
+	mkdir -p $(INSTALLDIR)
+	mv $(OUTPUTFILE) $(INSTALLDIR)

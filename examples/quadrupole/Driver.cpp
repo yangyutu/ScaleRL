@@ -16,15 +16,13 @@ int main(int argc, char* argv[]){
 
 void testModel() {
     State state;
-    std::shared_ptr<BaseModel> model(new Model_QuadrupoleLD);
+    std::shared_ptr<BaseModel> model(new Model_QuadrupoleLD("traj/quench"));
     int maxIter = 10000;
     int iter = 0;
     std::ofstream os;
     
     for (int i = 0; i < 100; i++) {
-        std::stringstream ss;
-        ss << i;
-        os.open("traj/quench"+ss.str()+".dat");
+
         model->createInitialState();
         iter = 0;
         while (iter < maxIter && !model->terminate()) {
@@ -35,14 +33,16 @@ void testModel() {
             }
             iter++;
         }
-        os.close();
+
     }
 }
 void testQLearning(char* filename2){
 
+    ReinforcementLearningParameter message2;
     QLearningSolverParameter message3;
-    ReadProtoFromTextFile(filename2, &message3);
-    std::shared_ptr<BaseModel> model(new Model_QuadrupoleLD());
+    ReadProtoFromTextFile(filename2, &message2);
+    message3 = message2.qlearningsolverparameter();
+    std::shared_ptr<BaseModel> model(new Model_QuadrupoleLD("traj/"));
     
     int n_rows = 20;
     int n_cols = 78;

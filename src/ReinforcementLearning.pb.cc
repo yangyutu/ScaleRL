@@ -20,6 +20,9 @@ namespace ReinforcementLearning {
 
 namespace {
 
+const ::google::protobuf::Descriptor* ReinforcementLearningParameter_descriptor_ = NULL;
+const ::google::protobuf::internal::GeneratedMessageReflection*
+  ReinforcementLearningParameter_reflection_ = NULL;
 const ::google::protobuf::Descriptor* QLearningSolverParameter_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
   QLearningSolverParameter_reflection_ = NULL;
@@ -33,7 +36,22 @@ void protobuf_AssignDesc_ReinforcementLearning_2eproto() {
     ::google::protobuf::DescriptorPool::generated_pool()->FindFileByName(
       "ReinforcementLearning.proto");
   GOOGLE_CHECK(file != NULL);
-  QLearningSolverParameter_descriptor_ = file->message_type(0);
+  ReinforcementLearningParameter_descriptor_ = file->message_type(0);
+  static const int ReinforcementLearningParameter_offsets_[1] = {
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ReinforcementLearningParameter, qlearningsolverparameter_),
+  };
+  ReinforcementLearningParameter_reflection_ =
+    new ::google::protobuf::internal::GeneratedMessageReflection(
+      ReinforcementLearningParameter_descriptor_,
+      ReinforcementLearningParameter::default_instance_,
+      ReinforcementLearningParameter_offsets_,
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ReinforcementLearningParameter, _has_bits_[0]),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(ReinforcementLearningParameter, _unknown_fields_),
+      -1,
+      ::google::protobuf::DescriptorPool::generated_pool(),
+      ::google::protobuf::MessageFactory::generated_factory(),
+      sizeof(ReinforcementLearningParameter));
+  QLearningSolverParameter_descriptor_ = file->message_type(1);
   static const int QLearningSolverParameter_offsets_[8] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(QLearningSolverParameter, numtrainingepisodes_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(QLearningSolverParameter, learningrate_),
@@ -68,12 +86,16 @@ inline void protobuf_AssignDescriptorsOnce() {
 void protobuf_RegisterTypes(const ::std::string&) {
   protobuf_AssignDescriptorsOnce();
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
+    ReinforcementLearningParameter_descriptor_, &ReinforcementLearningParameter::default_instance());
+  ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
     QLearningSolverParameter_descriptor_, &QLearningSolverParameter::default_instance());
 }
 
 }  // namespace
 
 void protobuf_ShutdownFile_ReinforcementLearning_2eproto() {
+  delete ReinforcementLearningParameter::default_instance_;
+  delete ReinforcementLearningParameter_reflection_;
   delete QLearningSolverParameter::default_instance_;
   delete QLearningSolverParameter_reflection_;
 }
@@ -86,16 +108,21 @@ void protobuf_AddDesc_ReinforcementLearning_2eproto() {
 
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
     "\n\033ReinforcementLearning.proto\022\025Reinforce"
-    "mentLearning\"\365\001\n\030QLearningSolverParamete"
-    "r\022\033\n\023numTrainingEpisodes\030\001 \001(\005\022\031\n\014learni"
-    "ngRate\030\002 \001(\001:\0030.1\022\025\n\007epsilon\030\003 \001(\001:\0040.95"
-    "\022\025\n\rEpisodeLength\030\004 \001(\005\022\026\n\010discount\030\005 \001("
-    "\001:\0040.95\022!\n\031numEpisodesBeforeTraining\030\006 \001"
-    "(\005\022\034\n\024QTableOutputInterval\030\007 \001(\005\022\032\n\017cont"
-    "rolInterval\030\010 \001(\005:\0011", 300);
+    "mentLearning\"s\n\036ReinforcementLearningPar"
+    "ameter\022Q\n\030qLearningSolverParameter\030d \001(\013"
+    "2/.ReinforcementLearning.QLearningSolver"
+    "Parameter\"\365\001\n\030QLearningSolverParameter\022\033"
+    "\n\023numTrainingEpisodes\030\001 \001(\005\022\031\n\014learningR"
+    "ate\030\002 \001(\001:\0030.1\022\025\n\007epsilon\030\003 \001(\001:\0040.95\022\025\n"
+    "\rEpisodeLength\030\004 \001(\005\022\026\n\010discount\030\005 \001(\001:\004"
+    "0.95\022!\n\031numEpisodesBeforeTraining\030\006 \001(\005\022"
+    "\034\n\024QTableOutputInterval\030\007 \001(\005\022\032\n\017control"
+    "Interval\030\010 \001(\005:\0011", 417);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "ReinforcementLearning.proto", &protobuf_RegisterTypes);
+  ReinforcementLearningParameter::default_instance_ = new ReinforcementLearningParameter();
   QLearningSolverParameter::default_instance_ = new QLearningSolverParameter();
+  ReinforcementLearningParameter::default_instance_->InitAsDefaultInstance();
   QLearningSolverParameter::default_instance_->InitAsDefaultInstance();
   ::google::protobuf::internal::OnShutdown(&protobuf_ShutdownFile_ReinforcementLearning_2eproto);
 }
@@ -106,6 +133,233 @@ struct StaticDescriptorInitializer_ReinforcementLearning_2eproto {
     protobuf_AddDesc_ReinforcementLearning_2eproto();
   }
 } static_descriptor_initializer_ReinforcementLearning_2eproto_;
+
+// ===================================================================
+
+#ifndef _MSC_VER
+const int ReinforcementLearningParameter::kQLearningSolverParameterFieldNumber;
+#endif  // !_MSC_VER
+
+ReinforcementLearningParameter::ReinforcementLearningParameter()
+  : ::google::protobuf::Message() {
+  SharedCtor();
+  // @@protoc_insertion_point(constructor:ReinforcementLearning.ReinforcementLearningParameter)
+}
+
+void ReinforcementLearningParameter::InitAsDefaultInstance() {
+  qlearningsolverparameter_ = const_cast< ::ReinforcementLearning::QLearningSolverParameter*>(&::ReinforcementLearning::QLearningSolverParameter::default_instance());
+}
+
+ReinforcementLearningParameter::ReinforcementLearningParameter(const ReinforcementLearningParameter& from)
+  : ::google::protobuf::Message() {
+  SharedCtor();
+  MergeFrom(from);
+  // @@protoc_insertion_point(copy_constructor:ReinforcementLearning.ReinforcementLearningParameter)
+}
+
+void ReinforcementLearningParameter::SharedCtor() {
+  _cached_size_ = 0;
+  qlearningsolverparameter_ = NULL;
+  ::memset(_has_bits_, 0, sizeof(_has_bits_));
+}
+
+ReinforcementLearningParameter::~ReinforcementLearningParameter() {
+  // @@protoc_insertion_point(destructor:ReinforcementLearning.ReinforcementLearningParameter)
+  SharedDtor();
+}
+
+void ReinforcementLearningParameter::SharedDtor() {
+  if (this != default_instance_) {
+    delete qlearningsolverparameter_;
+  }
+}
+
+void ReinforcementLearningParameter::SetCachedSize(int size) const {
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+}
+const ::google::protobuf::Descriptor* ReinforcementLearningParameter::descriptor() {
+  protobuf_AssignDescriptorsOnce();
+  return ReinforcementLearningParameter_descriptor_;
+}
+
+const ReinforcementLearningParameter& ReinforcementLearningParameter::default_instance() {
+  if (default_instance_ == NULL) protobuf_AddDesc_ReinforcementLearning_2eproto();
+  return *default_instance_;
+}
+
+ReinforcementLearningParameter* ReinforcementLearningParameter::default_instance_ = NULL;
+
+ReinforcementLearningParameter* ReinforcementLearningParameter::New() const {
+  return new ReinforcementLearningParameter;
+}
+
+void ReinforcementLearningParameter::Clear() {
+  if (has_qlearningsolverparameter()) {
+    if (qlearningsolverparameter_ != NULL) qlearningsolverparameter_->::ReinforcementLearning::QLearningSolverParameter::Clear();
+  }
+  ::memset(_has_bits_, 0, sizeof(_has_bits_));
+  mutable_unknown_fields()->Clear();
+}
+
+bool ReinforcementLearningParameter::MergePartialFromCodedStream(
+    ::google::protobuf::io::CodedInputStream* input) {
+#define DO_(EXPRESSION) if (!(EXPRESSION)) goto failure
+  ::google::protobuf::uint32 tag;
+  // @@protoc_insertion_point(parse_start:ReinforcementLearning.ReinforcementLearningParameter)
+  for (;;) {
+    ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoff(16383);
+    tag = p.first;
+    if (!p.second) goto handle_unusual;
+    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
+      // optional .ReinforcementLearning.QLearningSolverParameter qLearningSolverParameter = 100;
+      case 100: {
+        if (tag == 802) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
+               input, mutable_qlearningsolverparameter()));
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectAtEnd()) goto success;
+        break;
+      }
+
+      default: {
+      handle_unusual:
+        if (tag == 0 ||
+            ::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
+          goto success;
+        }
+        DO_(::google::protobuf::internal::WireFormat::SkipField(
+              input, tag, mutable_unknown_fields()));
+        break;
+      }
+    }
+  }
+success:
+  // @@protoc_insertion_point(parse_success:ReinforcementLearning.ReinforcementLearningParameter)
+  return true;
+failure:
+  // @@protoc_insertion_point(parse_failure:ReinforcementLearning.ReinforcementLearningParameter)
+  return false;
+#undef DO_
+}
+
+void ReinforcementLearningParameter::SerializeWithCachedSizes(
+    ::google::protobuf::io::CodedOutputStream* output) const {
+  // @@protoc_insertion_point(serialize_start:ReinforcementLearning.ReinforcementLearningParameter)
+  // optional .ReinforcementLearning.QLearningSolverParameter qLearningSolverParameter = 100;
+  if (has_qlearningsolverparameter()) {
+    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
+      100, this->qlearningsolverparameter(), output);
+  }
+
+  if (!unknown_fields().empty()) {
+    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
+        unknown_fields(), output);
+  }
+  // @@protoc_insertion_point(serialize_end:ReinforcementLearning.ReinforcementLearningParameter)
+}
+
+::google::protobuf::uint8* ReinforcementLearningParameter::SerializeWithCachedSizesToArray(
+    ::google::protobuf::uint8* target) const {
+  // @@protoc_insertion_point(serialize_to_array_start:ReinforcementLearning.ReinforcementLearningParameter)
+  // optional .ReinforcementLearning.QLearningSolverParameter qLearningSolverParameter = 100;
+  if (has_qlearningsolverparameter()) {
+    target = ::google::protobuf::internal::WireFormatLite::
+      WriteMessageNoVirtualToArray(
+        100, this->qlearningsolverparameter(), target);
+  }
+
+  if (!unknown_fields().empty()) {
+    target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
+        unknown_fields(), target);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:ReinforcementLearning.ReinforcementLearningParameter)
+  return target;
+}
+
+int ReinforcementLearningParameter::ByteSize() const {
+  int total_size = 0;
+
+  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+    // optional .ReinforcementLearning.QLearningSolverParameter qLearningSolverParameter = 100;
+    if (has_qlearningsolverparameter()) {
+      total_size += 2 +
+        ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
+          this->qlearningsolverparameter());
+    }
+
+  }
+  if (!unknown_fields().empty()) {
+    total_size +=
+      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
+        unknown_fields());
+  }
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = total_size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+  return total_size;
+}
+
+void ReinforcementLearningParameter::MergeFrom(const ::google::protobuf::Message& from) {
+  GOOGLE_CHECK_NE(&from, this);
+  const ReinforcementLearningParameter* source =
+    ::google::protobuf::internal::dynamic_cast_if_available<const ReinforcementLearningParameter*>(
+      &from);
+  if (source == NULL) {
+    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
+  } else {
+    MergeFrom(*source);
+  }
+}
+
+void ReinforcementLearningParameter::MergeFrom(const ReinforcementLearningParameter& from) {
+  GOOGLE_CHECK_NE(&from, this);
+  if (from._has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+    if (from.has_qlearningsolverparameter()) {
+      mutable_qlearningsolverparameter()->::ReinforcementLearning::QLearningSolverParameter::MergeFrom(from.qlearningsolverparameter());
+    }
+  }
+  mutable_unknown_fields()->MergeFrom(from.unknown_fields());
+}
+
+void ReinforcementLearningParameter::CopyFrom(const ::google::protobuf::Message& from) {
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+void ReinforcementLearningParameter::CopyFrom(const ReinforcementLearningParameter& from) {
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool ReinforcementLearningParameter::IsInitialized() const {
+
+  return true;
+}
+
+void ReinforcementLearningParameter::Swap(ReinforcementLearningParameter* other) {
+  if (other != this) {
+    std::swap(qlearningsolverparameter_, other->qlearningsolverparameter_);
+    std::swap(_has_bits_[0], other->_has_bits_[0]);
+    _unknown_fields_.Swap(&other->_unknown_fields_);
+    std::swap(_cached_size_, other->_cached_size_);
+  }
+}
+
+::google::protobuf::Metadata ReinforcementLearningParameter::GetMetadata() const {
+  protobuf_AssignDescriptorsOnce();
+  ::google::protobuf::Metadata metadata;
+  metadata.descriptor = ReinforcementLearningParameter_descriptor_;
+  metadata.reflection = ReinforcementLearningParameter_reflection_;
+  return metadata;
+}
+
 
 // ===================================================================
 

@@ -33,9 +33,91 @@ void  protobuf_AddDesc_ReinforcementLearning_2eproto();
 void protobuf_AssignDesc_ReinforcementLearning_2eproto();
 void protobuf_ShutdownFile_ReinforcementLearning_2eproto();
 
+class ReinforcementLearningParameter;
 class QLearningSolverParameter;
 
 // ===================================================================
+
+class ReinforcementLearningParameter : public ::google::protobuf::Message {
+ public:
+  ReinforcementLearningParameter();
+  virtual ~ReinforcementLearningParameter();
+
+  ReinforcementLearningParameter(const ReinforcementLearningParameter& from);
+
+  inline ReinforcementLearningParameter& operator=(const ReinforcementLearningParameter& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const ReinforcementLearningParameter& default_instance();
+
+  void Swap(ReinforcementLearningParameter* other);
+
+  // implements Message ----------------------------------------------
+
+  ReinforcementLearningParameter* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const ReinforcementLearningParameter& from);
+  void MergeFrom(const ReinforcementLearningParameter& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional .ReinforcementLearning.QLearningSolverParameter qLearningSolverParameter = 100;
+  inline bool has_qlearningsolverparameter() const;
+  inline void clear_qlearningsolverparameter();
+  static const int kQLearningSolverParameterFieldNumber = 100;
+  inline const ::ReinforcementLearning::QLearningSolverParameter& qlearningsolverparameter() const;
+  inline ::ReinforcementLearning::QLearningSolverParameter* mutable_qlearningsolverparameter();
+  inline ::ReinforcementLearning::QLearningSolverParameter* release_qlearningsolverparameter();
+  inline void set_allocated_qlearningsolverparameter(::ReinforcementLearning::QLearningSolverParameter* qlearningsolverparameter);
+
+  // @@protoc_insertion_point(class_scope:ReinforcementLearning.ReinforcementLearningParameter)
+ private:
+  inline void set_has_qlearningsolverparameter();
+  inline void clear_has_qlearningsolverparameter();
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint32 _has_bits_[1];
+  mutable int _cached_size_;
+  ::ReinforcementLearning::QLearningSolverParameter* qlearningsolverparameter_;
+  friend void  protobuf_AddDesc_ReinforcementLearning_2eproto();
+  friend void protobuf_AssignDesc_ReinforcementLearning_2eproto();
+  friend void protobuf_ShutdownFile_ReinforcementLearning_2eproto();
+
+  void InitAsDefaultInstance();
+  static ReinforcementLearningParameter* default_instance_;
+};
+// -------------------------------------------------------------------
 
 class QLearningSolverParameter : public ::google::protobuf::Message {
  public:
@@ -188,6 +270,51 @@ class QLearningSolverParameter : public ::google::protobuf::Message {
 
 
 // ===================================================================
+
+// ReinforcementLearningParameter
+
+// optional .ReinforcementLearning.QLearningSolverParameter qLearningSolverParameter = 100;
+inline bool ReinforcementLearningParameter::has_qlearningsolverparameter() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void ReinforcementLearningParameter::set_has_qlearningsolverparameter() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void ReinforcementLearningParameter::clear_has_qlearningsolverparameter() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void ReinforcementLearningParameter::clear_qlearningsolverparameter() {
+  if (qlearningsolverparameter_ != NULL) qlearningsolverparameter_->::ReinforcementLearning::QLearningSolverParameter::Clear();
+  clear_has_qlearningsolverparameter();
+}
+inline const ::ReinforcementLearning::QLearningSolverParameter& ReinforcementLearningParameter::qlearningsolverparameter() const {
+  // @@protoc_insertion_point(field_get:ReinforcementLearning.ReinforcementLearningParameter.qLearningSolverParameter)
+  return qlearningsolverparameter_ != NULL ? *qlearningsolverparameter_ : *default_instance_->qlearningsolverparameter_;
+}
+inline ::ReinforcementLearning::QLearningSolverParameter* ReinforcementLearningParameter::mutable_qlearningsolverparameter() {
+  set_has_qlearningsolverparameter();
+  if (qlearningsolverparameter_ == NULL) qlearningsolverparameter_ = new ::ReinforcementLearning::QLearningSolverParameter;
+  // @@protoc_insertion_point(field_mutable:ReinforcementLearning.ReinforcementLearningParameter.qLearningSolverParameter)
+  return qlearningsolverparameter_;
+}
+inline ::ReinforcementLearning::QLearningSolverParameter* ReinforcementLearningParameter::release_qlearningsolverparameter() {
+  clear_has_qlearningsolverparameter();
+  ::ReinforcementLearning::QLearningSolverParameter* temp = qlearningsolverparameter_;
+  qlearningsolverparameter_ = NULL;
+  return temp;
+}
+inline void ReinforcementLearningParameter::set_allocated_qlearningsolverparameter(::ReinforcementLearning::QLearningSolverParameter* qlearningsolverparameter) {
+  delete qlearningsolverparameter_;
+  qlearningsolverparameter_ = qlearningsolverparameter;
+  if (qlearningsolverparameter) {
+    set_has_qlearningsolverparameter();
+  } else {
+    clear_has_qlearningsolverparameter();
+  }
+  // @@protoc_insertion_point(field_set_allocated:ReinforcementLearning.ReinforcementLearningParameter.qLearningSolverParameter)
+}
+
+// -------------------------------------------------------------------
 
 // QLearningSolverParameter
 

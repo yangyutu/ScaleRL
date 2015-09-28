@@ -1,6 +1,10 @@
 syntax = "proto2";
 package ReinforcementLearning;
 
+message ReinforcementLearningParameter{
+	optional QLearningSolverParameter qLearningSolverParameter= 100;
+}
+
 message QLearningSolverParameter{
 	optional int32 numTrainingEpisodes = 1;
 	optional double learningRate = 2 [default = 0.1];
