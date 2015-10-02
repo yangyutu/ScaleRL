@@ -228,6 +228,20 @@ class QLearningSolverParameter : public ::google::protobuf::Message {
   inline ::google::protobuf::int32 controlinterval() const;
   inline void set_controlinterval(::google::protobuf::int32 value);
 
+  // optional int32 experienceReplayInterval = 9 [default = 100];
+  inline bool has_experiencereplayinterval() const;
+  inline void clear_experiencereplayinterval();
+  static const int kExperienceReplayIntervalFieldNumber = 9;
+  inline ::google::protobuf::int32 experiencereplayinterval() const;
+  inline void set_experiencereplayinterval(::google::protobuf::int32 value);
+
+  // optional int32 experienceStopCriterion = 10 [default = 10000];
+  inline bool has_experiencestopcriterion() const;
+  inline void clear_experiencestopcriterion();
+  static const int kExperienceStopCriterionFieldNumber = 10;
+  inline ::google::protobuf::int32 experiencestopcriterion() const;
+  inline void set_experiencestopcriterion(::google::protobuf::int32 value);
+
   // @@protoc_insertion_point(class_scope:ReinforcementLearning.QLearningSolverParameter)
  private:
   inline void set_has_numtrainingepisodes();
@@ -246,6 +260,10 @@ class QLearningSolverParameter : public ::google::protobuf::Message {
   inline void clear_has_qtableoutputinterval();
   inline void set_has_controlinterval();
   inline void clear_has_controlinterval();
+  inline void set_has_experiencereplayinterval();
+  inline void clear_has_experiencereplayinterval();
+  inline void set_has_experiencestopcriterion();
+  inline void clear_has_experiencestopcriterion();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
@@ -259,6 +277,8 @@ class QLearningSolverParameter : public ::google::protobuf::Message {
   ::google::protobuf::int32 numepisodesbeforetraining_;
   ::google::protobuf::int32 qtableoutputinterval_;
   ::google::protobuf::int32 controlinterval_;
+  ::google::protobuf::int32 experiencereplayinterval_;
+  ::google::protobuf::int32 experiencestopcriterion_;
   friend void  protobuf_AddDesc_ReinforcementLearning_2eproto();
   friend void protobuf_AssignDesc_ReinforcementLearning_2eproto();
   friend void protobuf_ShutdownFile_ReinforcementLearning_2eproto();
@@ -508,6 +528,54 @@ inline void QLearningSolverParameter::set_controlinterval(::google::protobuf::in
   set_has_controlinterval();
   controlinterval_ = value;
   // @@protoc_insertion_point(field_set:ReinforcementLearning.QLearningSolverParameter.controlInterval)
+}
+
+// optional int32 experienceReplayInterval = 9 [default = 100];
+inline bool QLearningSolverParameter::has_experiencereplayinterval() const {
+  return (_has_bits_[0] & 0x00000100u) != 0;
+}
+inline void QLearningSolverParameter::set_has_experiencereplayinterval() {
+  _has_bits_[0] |= 0x00000100u;
+}
+inline void QLearningSolverParameter::clear_has_experiencereplayinterval() {
+  _has_bits_[0] &= ~0x00000100u;
+}
+inline void QLearningSolverParameter::clear_experiencereplayinterval() {
+  experiencereplayinterval_ = 100;
+  clear_has_experiencereplayinterval();
+}
+inline ::google::protobuf::int32 QLearningSolverParameter::experiencereplayinterval() const {
+  // @@protoc_insertion_point(field_get:ReinforcementLearning.QLearningSolverParameter.experienceReplayInterval)
+  return experiencereplayinterval_;
+}
+inline void QLearningSolverParameter::set_experiencereplayinterval(::google::protobuf::int32 value) {
+  set_has_experiencereplayinterval();
+  experiencereplayinterval_ = value;
+  // @@protoc_insertion_point(field_set:ReinforcementLearning.QLearningSolverParameter.experienceReplayInterval)
+}
+
+// optional int32 experienceStopCriterion = 10 [default = 10000];
+inline bool QLearningSolverParameter::has_experiencestopcriterion() const {
+  return (_has_bits_[0] & 0x00000200u) != 0;
+}
+inline void QLearningSolverParameter::set_has_experiencestopcriterion() {
+  _has_bits_[0] |= 0x00000200u;
+}
+inline void QLearningSolverParameter::clear_has_experiencestopcriterion() {
+  _has_bits_[0] &= ~0x00000200u;
+}
+inline void QLearningSolverParameter::clear_experiencestopcriterion() {
+  experiencestopcriterion_ = 10000;
+  clear_has_experiencestopcriterion();
+}
+inline ::google::protobuf::int32 QLearningSolverParameter::experiencestopcriterion() const {
+  // @@protoc_insertion_point(field_get:ReinforcementLearning.QLearningSolverParameter.experienceStopCriterion)
+  return experiencestopcriterion_;
+}
+inline void QLearningSolverParameter::set_experiencestopcriterion(::google::protobuf::int32 value) {
+  set_has_experiencestopcriterion();
+  experiencestopcriterion_ = value;
+  // @@protoc_insertion_point(field_set:ReinforcementLearning.QLearningSolverParameter.experienceStopCriterion)
 }
 
 

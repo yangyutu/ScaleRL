@@ -52,7 +52,7 @@ void protobuf_AssignDesc_ReinforcementLearning_2eproto() {
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(ReinforcementLearningParameter));
   QLearningSolverParameter_descriptor_ = file->message_type(1);
-  static const int QLearningSolverParameter_offsets_[8] = {
+  static const int QLearningSolverParameter_offsets_[10] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(QLearningSolverParameter, numtrainingepisodes_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(QLearningSolverParameter, learningrate_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(QLearningSolverParameter, epsilon_),
@@ -61,6 +61,8 @@ void protobuf_AssignDesc_ReinforcementLearning_2eproto() {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(QLearningSolverParameter, numepisodesbeforetraining_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(QLearningSolverParameter, qtableoutputinterval_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(QLearningSolverParameter, controlinterval_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(QLearningSolverParameter, experiencereplayinterval_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(QLearningSolverParameter, experiencestopcriterion_),
   };
   QLearningSolverParameter_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -111,13 +113,15 @@ void protobuf_AddDesc_ReinforcementLearning_2eproto() {
     "mentLearning\"s\n\036ReinforcementLearningPar"
     "ameter\022Q\n\030qLearningSolverParameter\030d \001(\013"
     "2/.ReinforcementLearning.QLearningSolver"
-    "Parameter\"\365\001\n\030QLearningSolverParameter\022\033"
+    "Parameter\"\304\002\n\030QLearningSolverParameter\022\033"
     "\n\023numTrainingEpisodes\030\001 \001(\005\022\031\n\014learningR"
     "ate\030\002 \001(\001:\0030.1\022\025\n\007epsilon\030\003 \001(\001:\0040.95\022\025\n"
     "\rEpisodeLength\030\004 \001(\005\022\026\n\010discount\030\005 \001(\001:\004"
     "0.95\022!\n\031numEpisodesBeforeTraining\030\006 \001(\005\022"
     "\034\n\024QTableOutputInterval\030\007 \001(\005\022\032\n\017control"
-    "Interval\030\010 \001(\005:\0011", 417);
+    "Interval\030\010 \001(\005:\0011\022%\n\030experienceReplayInt"
+    "erval\030\t \001(\005:\003100\022&\n\027experienceStopCriter"
+    "ion\030\n \001(\005:\00510000", 496);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "ReinforcementLearning.proto", &protobuf_RegisterTypes);
   ReinforcementLearningParameter::default_instance_ = new ReinforcementLearningParameter();
@@ -372,6 +376,8 @@ const int QLearningSolverParameter::kDiscountFieldNumber;
 const int QLearningSolverParameter::kNumEpisodesBeforeTrainingFieldNumber;
 const int QLearningSolverParameter::kQTableOutputIntervalFieldNumber;
 const int QLearningSolverParameter::kControlIntervalFieldNumber;
+const int QLearningSolverParameter::kExperienceReplayIntervalFieldNumber;
+const int QLearningSolverParameter::kExperienceStopCriterionFieldNumber;
 #endif  // !_MSC_VER
 
 QLearningSolverParameter::QLearningSolverParameter()
@@ -400,6 +406,8 @@ void QLearningSolverParameter::SharedCtor() {
   numepisodesbeforetraining_ = 0;
   qtableoutputinterval_ = 0;
   controlinterval_ = 1;
+  experiencereplayinterval_ = 100;
+  experiencestopcriterion_ = 10000;
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
@@ -452,6 +460,10 @@ void QLearningSolverParameter::Clear() {
     epsilon_ = 0.95;
     discount_ = 0.95;
     controlinterval_ = 1;
+  }
+  if (_has_bits_[8 / 32] & 768) {
+    experiencereplayinterval_ = 100;
+    experiencestopcriterion_ = 10000;
   }
 
 #undef OFFSET_OF_FIELD_
@@ -586,6 +598,36 @@ bool QLearningSolverParameter::MergePartialFromCodedStream(
         } else {
           goto handle_unusual;
         }
+        if (input->ExpectTag(72)) goto parse_experienceReplayInterval;
+        break;
+      }
+
+      // optional int32 experienceReplayInterval = 9 [default = 100];
+      case 9: {
+        if (tag == 72) {
+         parse_experienceReplayInterval:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
+                 input, &experiencereplayinterval_)));
+          set_has_experiencereplayinterval();
+        } else {
+          goto handle_unusual;
+        }
+        if (input->ExpectTag(80)) goto parse_experienceStopCriterion;
+        break;
+      }
+
+      // optional int32 experienceStopCriterion = 10 [default = 10000];
+      case 10: {
+        if (tag == 80) {
+         parse_experienceStopCriterion:
+          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
+                   ::google::protobuf::int32, ::google::protobuf::internal::WireFormatLite::TYPE_INT32>(
+                 input, &experiencestopcriterion_)));
+          set_has_experiencestopcriterion();
+        } else {
+          goto handle_unusual;
+        }
         if (input->ExpectAtEnd()) goto success;
         break;
       }
@@ -655,6 +697,16 @@ void QLearningSolverParameter::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteInt32(8, this->controlinterval(), output);
   }
 
+  // optional int32 experienceReplayInterval = 9 [default = 100];
+  if (has_experiencereplayinterval()) {
+    ::google::protobuf::internal::WireFormatLite::WriteInt32(9, this->experiencereplayinterval(), output);
+  }
+
+  // optional int32 experienceStopCriterion = 10 [default = 10000];
+  if (has_experiencestopcriterion()) {
+    ::google::protobuf::internal::WireFormatLite::WriteInt32(10, this->experiencestopcriterion(), output);
+  }
+
   if (!unknown_fields().empty()) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         unknown_fields(), output);
@@ -703,6 +755,16 @@ void QLearningSolverParameter::SerializeWithCachedSizes(
   // optional int32 controlInterval = 8 [default = 1];
   if (has_controlinterval()) {
     target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(8, this->controlinterval(), target);
+  }
+
+  // optional int32 experienceReplayInterval = 9 [default = 100];
+  if (has_experiencereplayinterval()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(9, this->experiencereplayinterval(), target);
+  }
+
+  // optional int32 experienceStopCriterion = 10 [default = 10000];
+  if (has_experiencestopcriterion()) {
+    target = ::google::protobuf::internal::WireFormatLite::WriteInt32ToArray(10, this->experiencestopcriterion(), target);
   }
 
   if (!unknown_fields().empty()) {
@@ -768,6 +830,22 @@ int QLearningSolverParameter::ByteSize() const {
     }
 
   }
+  if (_has_bits_[8 / 32] & (0xffu << (8 % 32))) {
+    // optional int32 experienceReplayInterval = 9 [default = 100];
+    if (has_experiencereplayinterval()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::Int32Size(
+          this->experiencereplayinterval());
+    }
+
+    // optional int32 experienceStopCriterion = 10 [default = 10000];
+    if (has_experiencestopcriterion()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::Int32Size(
+          this->experiencestopcriterion());
+    }
+
+  }
   if (!unknown_fields().empty()) {
     total_size +=
       ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
@@ -819,6 +897,14 @@ void QLearningSolverParameter::MergeFrom(const QLearningSolverParameter& from) {
       set_controlinterval(from.controlinterval());
     }
   }
+  if (from._has_bits_[8 / 32] & (0xffu << (8 % 32))) {
+    if (from.has_experiencereplayinterval()) {
+      set_experiencereplayinterval(from.experiencereplayinterval());
+    }
+    if (from.has_experiencestopcriterion()) {
+      set_experiencestopcriterion(from.experiencestopcriterion());
+    }
+  }
   mutable_unknown_fields()->MergeFrom(from.unknown_fields());
 }
 
@@ -849,6 +935,8 @@ void QLearningSolverParameter::Swap(QLearningSolverParameter* other) {
     std::swap(numepisodesbeforetraining_, other->numepisodesbeforetraining_);
     std::swap(qtableoutputinterval_, other->qtableoutputinterval_);
     std::swap(controlinterval_, other->controlinterval_);
+    std::swap(experiencereplayinterval_, other->experiencereplayinterval_);
+    std::swap(experiencestopcriterion_, other->experiencestopcriterion_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);

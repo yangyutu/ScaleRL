@@ -14,4 +14,6 @@ message QLearningSolverParameter{
 	optional int32 numEpisodesBeforeTraining = 6;
 	optional int32 QTableOutputInterval = 7;
 	optional int32 controlInterval = 8 [default = 1];
+	optional int32 experienceReplayInterval = 9 [default = 100];
+	optional int32 experienceStopCriterion = 10 [default = 10000];
 }

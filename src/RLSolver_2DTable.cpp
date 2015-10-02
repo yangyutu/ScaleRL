@@ -136,7 +136,7 @@ std::pair<int, int> RLSolver_2DTable::stateToIndex(const State& S){
     return std::pair<int, int>(idx1,idx2);
 }
 
-void RLSolver_2DTable::outputQ(std::string filename) {
+void RLSolver_2DTable::outputQ(std::string filename) const {
     
     for (int i = 0; i < numActions; ++i) {
         arma::mat temp = QTable.slice(i);
@@ -146,13 +146,14 @@ void RLSolver_2DTable::outputQ(std::string filename) {
     }
 }
 
-void RLSolver_2DTable::outputExperince(std::string filename) const {
+void RLSolver_2DTable::outputExperience(std::string filename) const {
     
     std::ofstream os;
     os.open(filename);
     for (auto &exp: RLSolver_2DTable::experienceVec) {
         os << exp << std::endl;
     }
+	os.close();
 }
 
 void RLSolver_2DTable::loadQTable(std::string filetag){
@@ -165,7 +166,7 @@ void RLSolver_2DTable::loadQTable(std::string filetag){
 	}
 }
 
-void RLSolver_2DTable::outputPolicy(){
+void RLSolver_2DTable::outputPolicy() const{
     arma::Mat<int> actionMap(n_rows, n_cols, arma::fill::zeros);
     arma::mat QMap(n_rows, n_cols, arma::fill::ones);
     QMap *= -1;

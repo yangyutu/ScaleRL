@@ -20,9 +20,9 @@ namespace ReinforcementLearning {
         virtual arma::cube& getQTable(){return QTable;}
         virtual void loadQTable(std::string filetag);
     protected:
-        void outputPolicy();
-        void outputExperince(std::string filename) const;
-	void outputQ(std::string filename);
+        void outputPolicy() const;
+        void outputExperience(std::string filename) const;
+		void outputQ(std::string filename) const;
         void writeTrajectory(int iter, std::ostream &os, int action, State state, double reward) const;
         static std::pair<int, int> stateToIndex(const State & S);
         static arma::cube QTable;
