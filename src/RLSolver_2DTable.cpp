@@ -2,6 +2,12 @@
 
 using namespace ReinforcementLearning;
 
+arma::cube RLSolver_2DTable::QTable;
+int RLSolver_2DTable::n_rows, RLSolver_2DTable::n_cols, RLSolver_2DTable::numActions;
+double RLSolver_2DTable::dx1, RLSolver_2DTable::dx2, RLSolver_2DTable::minx1, RLSolver_2DTable::minx2;
+arma::Mat<int> RLSolver_2DTable::count;
+std::vector<Experience> RLSolver_2DTable::experienceVec;
+
 RLSolver_2DTable::RLSolver_2DTable(std::shared_ptr<BaseModel> m, int Dim, 
         ReinforcementLearning::QLearningSolverParameter para, int n_row0, int n_col0, 
         double dx, double dy, double min_x, double min_y):
@@ -36,7 +42,7 @@ void RLSolver_2DTable::train() {
         while (!model->terminate() && iter < epiLength) {
             State oldState = model->getCurrState();
             if (randChoice->nextDou() < epi){
-                this->getMaxQ(oldState,&maxQ,&action);
+                getMaxQ(oldState,&maxQ,&action);
             } else {
                 action = randChoice->nextInt();
             }
@@ -45,7 +51,7 @@ void RLSolver_2DTable::train() {
             reward = model->getRewards();
             this->updateQ(Experience(oldState, newState, action, reward));
             if (experienceReplayFlag) {
-                this->experienceVec.push_back(Experience(oldState, newState, action, reward));
+                experienceVec.push_back(Experience(oldState, newState, action, reward));
             }
              iter++;
         }
@@ -64,7 +70,7 @@ void RLSolver_2DTable::train() {
 
 void RLSolver_2DTable::replayExperience(){
     // replay in reverse order
-    for (auto exp = this->experienceVec.rbegin(); exp != this->experienceVec.rend(); ++exp){
+    for (auto exp = RLSolver_2DTable::experienceVec.rbegin(); exp != RLSolver_2DTable::experienceVec.rend(); ++exp){
         this->updateQ(*exp);
     }
 }
@@ -83,7 +89,7 @@ void RLSolver_2DTable::test(){
         model->createInitialState();
         while (!model->terminate() && iter < epiLength) {
             State oldState = model->getCurrState();          
-            this->getMaxQ(oldState,&maxQ,&action);
+            getMaxQ(oldState,&maxQ,&action);
             model->run(action, controlInterval);
             State newState = model->getCurrState();
             double reward = model->getRewards();
@@ -98,15 +104,15 @@ void RLSolver_2DTable::updateQ(Experience exp) {
     int action;
     double maxQ;
     double discount = trainingPara.discount();
-    this->getMaxQ(exp.newState, &maxQ, &action);
-    std::pair<int, int> index0 = this->stateToIndex(exp.oldState);
+    getMaxQ(exp.newState, &maxQ, &action);
+    std::pair<int, int> index0 = stateToIndex(exp.oldState);
     count(index0.first,index0.second) += 1;
     QTable(index0.first,index0.second,exp.action) += 
             learningRate * (exp.reward + discount * maxQ - QTable(index0.first, index0.second, exp.action));
 }
 
-void RLSolver_2DTable::getMaxQ(const State& S, double* maxQ, int* action) const{
-    std::pair<int, int> index = this->stateToIndex(S);
+void RLSolver_2DTable::getMaxQ(const State& S, double* maxQ, int* action){
+    std::pair<int, int> index = RLSolver_2DTable::stateToIndex(S);
     double max = -std::numeric_limits<double>::max();
     for (int i = 0; i < numActions; i++){
         if(max < QTable(index.first,index.second, i)){
@@ -117,14 +123,14 @@ void RLSolver_2DTable::getMaxQ(const State& S, double* maxQ, int* action) const{
     *maxQ = max;
 }
 
-std::pair<int, int> RLSolver_2DTable::stateToIndex(const State& S) const {
+std::pair<int, int> RLSolver_2DTable::stateToIndex(const State& S){
     int idx1, idx2;
     idx1 = (int) ((S[0] - minx1)/dx1) + 1;
     idx2 = (int) ((S[1] - minx2)/dx2) + 1;
     if (idx1 < 0) idx1 = 0;
-    if (idx1 >= this->n_rows) idx1 = this->n_rows - 1; 
+    if (idx1 >= n_rows) idx1 = n_rows - 1; 
     if (idx2 < 0) idx2 = 0;
-    if (idx2 >= this->n_cols) idx2 = this->n_cols - 1; 
+    if (idx2 >= n_cols) idx2 = n_cols - 1; 
     
     
     return std::pair<int, int>(idx1,idx2);
@@ -137,6 +143,15 @@ void RLSolver_2DTable::outputQ(std::string filename) {
         std::stringstream ss;
         ss << i;
         temp.save(filename + ss.str() + ".dat", arma::raw_ascii);
+    }
+}
+
+void RLSolver_2DTable::outputExperince(std::string filename) const {
+    
+    std::ofstream os;
+    os.open(filename);
+    for (auto &exp: RLSolver_2DTable::experienceVec) {
+        os << exp << std::endl;
     }
 }
 
