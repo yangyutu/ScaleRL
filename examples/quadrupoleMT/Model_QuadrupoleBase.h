@@ -24,7 +24,8 @@ protected:
     int trajOutputInterval;
     int timeCounter,fileCounter;
     double reward;
-    std::default_random_engine rand_generator;
+    std::random_device rand_generator;
+    std::mt19937 rand_gen_mt19937;
     std::shared_ptr<std::normal_distribution<double>> rand_normal;
 };
 }

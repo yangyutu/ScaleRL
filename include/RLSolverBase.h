@@ -21,7 +21,7 @@ namespace ReinforcementLearning {
         int stateDim;
         std::shared_ptr<BaseModel> model;
         std::shared_ptr<RandomStream> randChoice;
-        ReinforcementLearning::QLearningSolverParameter trainingPara;
+        static QLearningSolverParameter trainingPara;
 
     };
 }

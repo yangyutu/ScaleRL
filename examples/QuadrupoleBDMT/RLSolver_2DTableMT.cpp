@@ -1,12 +1,14 @@
+#include <atomic>
+
 #include "RLSolver_2DTableMT.h"
 
 using namespace ReinforcementLearning;
 
 
 bool RLSolver_2DTableMT::finish_global = false;
-int RLSolver_2DTableMT::threshFinishCount_global = 0;
+std::atomic<int> RLSolver_2DTableMT::threshFinishCount_global(0);
 std::mutex RLSolver_2DTableMT::QTable_mutex;
-
+int RLSolver_2DTableMT::experienceSetSize = 0;
 
 RLSolver_2DTableMT::RLSolver_2DTableMT(std::vector<std::shared_ptr<BaseModel>> m, int Dim, 
         ReinforcementLearning::QLearningSolverParameter para, int n_row0, int n_col0, 
@@ -24,6 +26,9 @@ void RLSolver_2DTableMT::train() {
     int QTableOutputInterval = trainingPara.qtableoutputinterval();
     int ExperienceReplayInterval = trainingPara.experiencereplayinterval();
     experienceStopCriterion = trainingPara.experiencestopcriterion();
+    
+    int experienceReplayCounter = 0;
+    int QTableOutputSizeCounter = 0;
     std::thread *threads = new std::thread[num_threads];
     for (int thread_idx = 0; thread_idx < num_threads; thread_idx++){
         threads[thread_idx] = std::thread(RLSolver_2DTableMT::trainOnMT, models[thread_idx], thread_idx, this->trainingPara);    
@@ -31,24 +36,29 @@ void RLSolver_2DTableMT::train() {
     
     while (RLSolver_2DTableMT::threshFinishCount_global < this->num_threads) {
         // after an episode, do experience reply
-        if (RLSolver_2DTableMT::experienceVec.size() > 0 &&
-                RLSolver_2DTableMT::experienceVec.size()%ExperienceReplayInterval == 0){
+/*    
+        if (RLSolver_2DTableMT::experienceVec.size() > experienceReplayCounter){
+            experienceReplayCounter += ExperienceReplayInterval;
             std::cout << "Main Thread experience set size: "<< RLSolver_2DTableMT::experienceVec.size() << std::endl;
             this->replayExperience();
         }
-        
-        if (RLSolver_2DTableMT::experienceVec.size() > experienceStopCriterion) {
+*/        
+        if (RLSolver_2DTableMT::experienceSetSize > experienceStopCriterion) {
+            std::cout << "Main Thread: experience set satisfied: "<< RLSolver_2DTableMT::experienceSetSize << std::endl;            
             finish_global = true;    
             break;
         }   
         
-        if (RLSolver_2DTableMT::experienceVec.size() > 0 &&
-                RLSolver_2DTableMT::experienceVec.size()%QTableOutputInterval == 0){
+        if (RLSolver_2DTableMT::experienceSetSize > QTableOutputSizeCounter){
+            QTableOutputSizeCounter += QTableOutputInterval;
             for( int i = 0; i < RLSolver_2DTableMT::numActions; i++) {
                 std::stringstream ss;        
-                ss << (RLSolver_2DTableMT::experienceVec.size()/QTableOutputInterval);
-                this->outputQ("QTable_" + ss.str() + "iter");
+                ss << (RLSolver_2DTableMT::experienceSetSize/QTableOutputInterval);
+                this->outputQ("QTable_" + ss.str() + "iter");                
             }
+            std::stringstream ss;        
+            ss << (RLSolver_2DTableMT::experienceSetSize/QTableOutputInterval);
+            this->outputExperience("experience_" + ss.str() + ".dat");
         }
      }
  
@@ -56,12 +66,14 @@ void RLSolver_2DTableMT::train() {
         threads[thread_idx].join();    
     }
     
-    std::cout << "experience set size: "<< RLSolver_2DTableMT::experienceVec.size() << std::endl;
+    std::cout << "Main thread experience set size: "<< RLSolver_2DTableMT::experienceVec.size() << std::endl;
         
         this->outputQ("QTableFinal");
         this->outputPolicy();
-//        this->outputExperience("experience.dat");
+        this->outputExperience("experienceFinal.dat");
         
+        std::cout << "Main thread: Training finish!" << std::endl;
+    delete[] threads;   
 }
 
 void RLSolver_2DTableMT::trainOnMT(std::shared_ptr<BaseModel> m,int thread_idx,ReinforcementLearning::QLearningSolverParameter trainingPara){
@@ -72,8 +84,7 @@ void RLSolver_2DTableMT::trainOnMT(std::shared_ptr<BaseModel> m,int thread_idx,R
     int maxIter = trainingPara.numtrainingepisodes();
     int epiLength = trainingPara.episodelength();
     int controlInterval = trainingPara.controlinterval();
-    int QTableOutputInterval = trainingPara.qtableoutputinterval();
-    bool experienceReplayFlag = true;
+    int ExperienceReplayInterval = trainingPara.experiencereplayinterval();
     std::shared_ptr<BaseModel> model = m;
     std::shared_ptr<RandomStream> randChoice = std::make_shared<RandomStream>(0, model->getNumActions() - 1);
     for (int i = 0; i < maxIter; i++) {
@@ -85,9 +96,18 @@ void RLSolver_2DTableMT::trainOnMT(std::shared_ptr<BaseModel> m,int thread_idx,R
         iter = 0;
         model->createInitialState();
         while (!model->terminate() && iter < epiLength) {
+//            std::cout << "iteration " << iter << " from thread " << thread_idx << std::endl;
             State oldState = model->getCurrState();
             if (randChoice->nextDou() < epi){
+                std::unique_lock<std::mutex> lk(RLSolver_2DTableMT::QTable_mutex);
                 RLSolver_2DTableMT::getMaxQ(oldState,&maxQ,&action);
+                if (RLSolver_2DTableMT::experienceSetSize > 0 && 
+                        (RLSolver_2DTableMT::experienceSetSize%ExperienceReplayInterval == 0) ){
+                    std::cout << "Thread" << thread_idx << " replay experience set size: "<< 
+                        RLSolver_2DTableMT::experienceSetSize << std::endl;
+                    RLSolver_2DTableMT::replayExperience();
+                }
+                lk.unlock();
             } else {
                 action = randChoice->nextInt();
             }
@@ -95,19 +115,38 @@ void RLSolver_2DTableMT::trainOnMT(std::shared_ptr<BaseModel> m,int thread_idx,R
             State newState = model->getCurrState();
             reward = model->getRewards();
             
-            if (experienceReplayFlag) {
-                // update the experienceVec with a lock
-                std::unique_lock<std::mutex> lk(RLSolver_2DTableMT::QTable_mutex);
-                RLSolver_2DTableMT::experienceVec.push_back(Experience(oldState, newState, action, reward));
-                lk.unlock();
-            }
-             iter++;
+            // update the experienceVec with a lock
+            std::unique_lock<std::mutex> lk(RLSolver_2DTableMT::QTable_mutex);
+//            std::cout << "experienceVec size" << RLSolver_2DTableMT::experienceVec.size()
+//                    << " from thread " << thread_idx << std::endl;
+            RLSolver_2DTableMT::experienceVec.push_back(Experience(oldState, newState, action, reward));
+            RLSolver_2DTableMT::experienceSetSize = RLSolver_2DTableMT::experienceVec.size();           
+            lk.unlock();
+            iter++;
         }
         
     }
-    std::cout << "Thread " << thread_idx << " experience set size: "<< RLSolver_2DTableMT::experienceVec.size() << std::endl;
+    std::cout << "Thread " << thread_idx << " FINISH with experience set size: "<< RLSolver_2DTableMT::experienceSetSize << std::endl;
     std::unique_lock<std::mutex> lk(RLSolver_2DTableMT::QTable_mutex);
-    RLSolver_2DTableMT::threshFinishCount_global +=1;
+    std::atomic_fetch_add(&RLSolver_2DTableMT::threshFinishCount_global,1);
+//    RLSolver_2DTableMT::threshFinishCount_global +=1;
     lk.unlock();
            
 }
+
+void RLSolver_2DTableMT::outputExperience(std::string filename) {
+    
+    std::ofstream os;
+    os.open(filename);
+    for (int i = 0; i < RLSolver_2DTableMT::experienceSetSize; i++){
+        os << RLSolver_2DTableMT::experienceVec[i] << std::endl;
+    }
+    
+/*    
+    for (auto &exp: RLSolver_2DTableMT::experienceVec) {
+        os << exp << std::endl;
+    }
+	os.close();
+
+ */
+ }

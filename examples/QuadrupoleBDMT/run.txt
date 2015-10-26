@@ -1,0 +1,51 @@
+Radius of the particle (nm)                                                                                        
+1435.0                                                                                                             
+Temperature (C)                                                                                                    
+20                                                                                                                                                                                                                             
+Time step for integration (ms)                                                                                     
+0.1                                                                                                                
+Initial starting time (ms)                                                                                         
+0                                                                                                                                                                                                                              
+Fac1                                                                                                               
+5.9582E+07  4.0809E+04                                                                                             
+Fac2                                                                                                               
+40.5622  18.3254                                                                                                   
+Paralell Diffusion Factor                                                                                          
+0.4079                                                                                                             
+Gravitational Force (G*a/kT)                                                                                       
+43.5488                                                                                                            
+Enter cutoff for electric repulsion force calculation (radii)                                                      
+5.0                                                                                                                
+enter cutoff for dipole dipole calculation                                                                         
+5.0                                                                                                                
+kappa * a                                                                                                          
+143.5 46.67                                                                                                          
+bpp/kT/a                                                                                                           
+2.2975                                                                                                             
+bpw/kT                                                                                                             
+6628.1036                                                                                                          
+Clausius-Mossotti (fcm)                                                                                            
+-0.4667  -0.4678                                                                                                   
+Gap width (dg/a)  (dg is 100um)                                                                                    
+71.428                                                                                                                                                                                                                        
+Minimum coordination radius for conn6 (nm)                                                                         
+3780                                                                                                               
+Experimental Box Size (x/a, y/a)                                                                                   
+66 66 53.95556 41.10899                                                                                            
+Experimental Noise (nm)                                                                                            
+0                                                                                                                                                                                                                       
+Dummy variable                                                                                                     
+501                                                                                                                                                                                                                             
+rgdsfile                                                                                                           
+2dtabledsslam9.txt                                                                                                 
+rgdsmin, delrgdsmin, rgdssbin                                                                                      
+22250 -250 25                                                                                                      
+distmin, deldist, bin                                                                                              
+0 1400 50                                                                                                          
+dssmin  dssmax                                                                                                     
+0.15  0.5                                                                                                          
+dpf                                                                                                                
+1                                                                                                                  
+ecorrect flag                                                                                                      
+1
+                                                                                                                  

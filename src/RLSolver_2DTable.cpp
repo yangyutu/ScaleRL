@@ -71,7 +71,7 @@ void RLSolver_2DTable::train() {
 void RLSolver_2DTable::replayExperience(){
     // replay in reverse order
     for (auto exp = RLSolver_2DTable::experienceVec.rbegin(); exp != RLSolver_2DTable::experienceVec.rend(); ++exp){
-        this->updateQ(*exp);
+        updateQ(*exp);
     }
 }
 
@@ -146,15 +146,7 @@ void RLSolver_2DTable::outputQ(std::string filename) const {
     }
 }
 
-void RLSolver_2DTable::outputExperience(std::string filename) const {
-    
-    std::ofstream os;
-    os.open(filename);
-    for (auto &exp: RLSolver_2DTable::experienceVec) {
-        os << exp << std::endl;
-    }
-	os.close();
-}
+
 
 void RLSolver_2DTable::loadQTable(std::string filetag){
     for (int i = 0; i < numActions; ++i) {
