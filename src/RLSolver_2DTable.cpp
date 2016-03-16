@@ -125,8 +125,8 @@ void RLSolver_2DTable::getMaxQ(const State& S, double* maxQ, int* action){
 
 std::pair<int, int> RLSolver_2DTable::stateToIndex(const State& S){
     int idx1, idx2;
-    idx1 = (int) ((S[0] - minx1)/dx1) + 1;
-    idx2 = (int) ((S[1] - minx2)/dx2) + 1;
+    idx1 = (int) ((S[0] - minx1)/dx1);
+    idx2 = (int) ((S[1] - minx2)/dx2);
     if (idx1 < 0) idx1 = 0;
     if (idx1 >= n_rows) idx1 = n_rows - 1; 
     if (idx2 < 0) idx2 = 0;

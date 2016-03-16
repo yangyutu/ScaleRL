@@ -51,8 +51,12 @@ void Model_QuadrupoleBD::run(int action) {
 }
 
 void Model_QuadrupoleBD::createInitialState() {
-
-    this->readxyz("startmeshgrid1.txt");
+    if (fileCounter < 15) {this->readxyz("./StartMeshgridFolder/startmeshgrid1.txt");}
+    else {
+    std::stringstream FileStr;
+    FileStr << this->fileCounter;
+    this->readxyz("./StartMeshgridFolder/startmeshgrid" + FileStr.str() + ".txt");
+    }
     this->readDiffusivity("2dtabledsslam9.txt");
     std::stringstream ss;
     std::cout << "model initialize at round " << fileCounter << std::endl;

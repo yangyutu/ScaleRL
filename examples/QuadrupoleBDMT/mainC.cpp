@@ -174,5 +174,6 @@ void testQLearningMT(char* filename2, int thread){
     
     RLSolver_2DTableMT rlSolver(models, 2, message3, n_rows, n_cols, dx1, dx2, minx1, minx2,num_threads);
     rlSolver.getQTable().slice(3).fill(5);
+//    rlSolver.loadQTable("./QTableFile/QTableFinal");
     rlSolver.train();
 }
