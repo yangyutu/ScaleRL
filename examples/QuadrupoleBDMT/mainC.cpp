@@ -42,11 +42,12 @@ void testCppModel(std::string filename){
     
     int iter;
     
-    for (int i = 0; i < 1; i++) {
+    for (int i = 0; i < 50; i++) {
         model->createInitialState();
         std::cout << i << std::endl;
         iter = 0;
-        while (iter < 10 && !model->terminate()) {
+        while (iter < 1000) {
+//        while (iter < 1000 && !model->terminate()) {
             model->run(3);
             iter++;
         }
@@ -126,18 +127,40 @@ void writeOp(double t, double psi6, double c6, double rg, double lambda, int opt
     os << std::endl;
 }
 
+void writeCountMap(arma::cube CountMap, int n_rows, int n_cols) {
+    std::ofstream OCountMap1, OCountMap2, OCountMap3, OCountMap4;
+    OCountMap1.open("Option1.dat");
+    OCountMap2.open("Option2.dat");
+    OCountMap3.open("Option3.dat");
+    OCountMap4.open("Option4.dat");
+    for (int i = 0; i < n_rows; i++) {
+	for (int j = 0; j < n_cols; j++){
+	    OCountMap1 << CountMap(n_rows, n_cols, 1) << "\t";
+	    OCountMap2 << CountMap(n_rows, n_cols, 2) << "\t";
+	    OCountMap3 << CountMap(n_rows, n_cols, 3) << "\t";
+	    OCountMap4 << CountMap(n_rows, n_cols, 4) << "\t";
+	    if (j == n_cols - 1){
+		OCountMap1 << "\n";
+		OCountMap2 << "\n";
+		OCountMap3 << "\n";
+		OCountMap4 << "\n";
+	    }
+	}
+    }
+}
+
 void testQLearning(char* filename2){
     ReinforcementLearningParameter message2;
     QLearningSolverParameter message3;
     ReadProtoFromTextFile(filename2, &message2);
     message3 = message2.qlearningsolverparameter();
-    std::shared_ptr<BaseModel> model(new Model_QuadrupoleBD("traj/control"));
-    
+    std::shared_ptr<BaseModel> model(new Model_QuadrupoleBD("traj/control"));    
+
     int n_rows = 20;
     int n_cols = 20;
     
-    double dx1 = 0.05;
-    double dx2 = 0.05;
+    double dx1 = 1/20;
+    double dx2 = 1/20;
     double minx1 = 0.0;
     double minx2 = 0.0;
     
@@ -155,14 +178,16 @@ void testQLearningMT(char* filename2, int thread){
     ReadProtoFromTextFile(filename2, &message2);
     message3 = message2.qlearningsolverparameter();
     
-    int n_rows = 20;
-    int n_cols = 20;
+    int Resolution = 4;
+    int n_rows = Resolution;
+    int n_cols = Resolution;
     
-    double dx1 = 0.05;
-    double dx2 = 0.05;
+    double dx1 = 1/Resolution;
+    double dx2 = 1/Resolution;
     double minx1 = 0;
     double minx2 = 0;
-    
+    static arma::cube CountMap;
+    CountMap.zeros(n_rows, n_cols, 4);
     int num_threads = thread;
     std::vector<std::shared_ptr<BaseModel>> models;
     for (int i = 0; i < num_threads; i++){
@@ -176,4 +201,5 @@ void testQLearningMT(char* filename2, int thread){
     rlSolver.getQTable().slice(3).fill(5);
 //    rlSolver.loadQTable("./QTableFile/QTableFinal");
     rlSolver.train();
+    writeCountMap(CountMap, n_rows, n_cols);
 }

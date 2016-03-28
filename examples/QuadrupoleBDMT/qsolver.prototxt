@@ -3,9 +3,9 @@ qLearningSolverParameter{
         discount: 0.95
 	numTrainingEpisodes: 1
 	epsilon: 0.95
-	EpisodeLength: 50
-        QTableOutputInterval: 3
-        controlInterval: 10
-        experienceReplayInterval: 3
-        experienceStopCriterion: 3000
+	EpisodeLength: 1
+        QTableOutputInterval: 1000
+        controlInterval: 1
+        experienceReplayInterval: 30
+        experienceStopCriterion: 10000
 }

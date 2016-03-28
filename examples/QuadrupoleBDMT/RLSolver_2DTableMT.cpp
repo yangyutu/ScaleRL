@@ -11,15 +11,15 @@ int RLSolver_2DTableMT::experienceSetSize = 0;
 RLSolver_2DTableMT::RLSolver_2DTableMT(std::vector<std::shared_ptr<BaseModel>> m, int Dim, 
         ReinforcementLearning::QLearningSolverParameter para, int n_row0, int n_col0, 
         double dx, double dy, double min_x, double min_y, int num_threads0):
-    RLSolver_2DTable(m[0],Dim,para,n_row0,n_col0,dx,dy,min_x,min_y),num_threads(num_threads0),models(m){ }
+    RLSolver_2DTable(m[0],Dim,para,n_row0,n_col0,dx,dy,min_x,min_y),num_threads(num_threads0),models(m){}
 
 void RLSolver_2DTableMT::train() {
     int QTableOutputInterval = trainingPara.qtableoutputinterval(); //1000
     int ExperienceReplayInterval = trainingPara.experiencereplayinterval(); //30
     experienceStopCriterion = trainingPara.experiencestopcriterion();   //1e5
-    
     int experienceReplayCounter = 0;
     int QTableOutputSizeCounter = 0;
+    
     std::thread *threads = new std::thread[num_threads];
     for (int thread_idx = 0; thread_idx < num_threads; thread_idx++){
         threads[thread_idx] = std::thread(RLSolver_2DTableMT::trainOnMT, models[thread_idx], thread_idx, this->trainingPara);    
@@ -98,10 +98,12 @@ void RLSolver_2DTableMT::trainOnMT(std::shared_ptr<BaseModel> m,int thread_idx,R
             lk.unlock();
             iter++;
         } 
-//      2.3 如果到时间需要进行ExperienceReplay，就重复记录并更新QTable                   
+//      2.4 如果到时间需要进行ExperienceReplay，就重复记录并更新QTable                   
     std::cout << "Thread" << thread_idx << " replay experience set size: "<< 
         RLSolver_2DTableMT::experienceSetSize << std::endl;
+    std::unique_lock<std::mutex> lk(RLSolver_2DTableMT::QTable_mutex);
     RLSolver_2DTableMT::replayExperience();
+    lk.unlock();
     }
     std::cout << "Thread " << thread_idx << " FINISH with experience set size: "<< RLSolver_2DTableMT::experienceSetSize << std::endl;
     std::unique_lock<std::mutex> lk(RLSolver_2DTableMT::QTable_mutex);

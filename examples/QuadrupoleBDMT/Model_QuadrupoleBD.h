@@ -3,6 +3,7 @@
 #include <cmath>
 #include <iostream>
 #include <random>
+#include <vector>
 #include "Model_QuadrupoleBase.h"
 
 namespace ReinforcementLearning {  
@@ -20,6 +21,7 @@ protected:
     static const int np3 = 900;
     static const int rgdssbin = 25;
     static const int distdssbin = 50;
+    std::vector<std::vector<int>> nlist;
     int opt, nstep;
     int trajOutputInterval;
     int timeCounter,fileCounter;
@@ -36,11 +38,12 @@ protected:
     void readxyz(const std::string filename);
     void readDiffusivity(const std::string filename);
     void runHelper(int nstep, int opt);
+    void buildlist(int);
 
     int nxyz[np][3];
     double F[np3],D[np3];
     double randisp[np3], dsscalcu[np];
-    void forces();
+    void forces(int);
     double EMAG(double,double);
     
     void calOp();

@@ -1,4 +1,5 @@
 #include "Model_QuadrupoleBD.h"
+#include <vector>
 using namespace ReinforcementLearning;
 // this model is from paper Lease-squares policy iteration
 
@@ -27,6 +28,7 @@ Model_QuadrupoleBD::Model_QuadrupoleBD(std::string filetag0) {
         nxyz[i][0] = 3 * i;
         nxyz[i][1] = 3 * i + 1;
         nxyz[i][2] = 3 * i + 2;
+	nlist.push_back(std::vector<int>());
     }
 }
 
@@ -198,8 +200,6 @@ void Model_QuadrupoleBD::runHelper(int nstep, int controlOpt) {
     int step = 0;
     this->calDss();
     while (step < nstep) {
-
-        
         for (int j = 0; j < np; j++) {
             for (int k = 0; k < 3; k++) {
                 D[nxyz[j][k]] = dsscalcu[j];
@@ -208,7 +208,7 @@ void Model_QuadrupoleBD::runHelper(int nstep, int controlOpt) {
             }
         }
 
-        forces();
+        forces(step);
         double u;
         for (int j = 0; j < np3; j++) {
             u = D[j] * (F[j] * fac1 + randisp[j] * fac2);
@@ -219,7 +219,7 @@ void Model_QuadrupoleBD::runHelper(int nstep, int controlOpt) {
     this->calOp();
 }
 
-void Model_QuadrupoleBD::forces() {
+void Model_QuadrupoleBD::forces(int step) {
     double RX, RY, EMAGI, EMAGJ, dE2x, dE2y, Fdepx, Fdepy;
     double STEP = 1e-3;
     double rij[3];
@@ -234,12 +234,14 @@ void Model_QuadrupoleBD::forces() {
         Exi = -4.0*r[nxyz[i][0]]/DG;
         Eyi = 4.0*r[nxyz[i][1]]/DG;
         Ezi = 0;
-        
-        
-        for (int j = i+1; j < np; j++){
+	if ((step+1)%100 == 0 || step ==0 ){
+	    buildlist(i);
+	}
+	int nlistsize = nlist[i].size();
+        for (int jj = 0; jj < nlistsize; jj++){
+	    int j = nlist[i][jj];
             rij[0] = r[nxyz[j][0]] - r[nxyz[i][0]];
             rij[1] = r[nxyz[j][1]] - r[nxyz[i][1]];
-            
             double rijsep = sqrt(rij[0]*rij[0]+rij[1]*rij[1]);
             if (rijsep < 2*a){
                 Fpp = Fhw;
@@ -288,8 +290,6 @@ void Model_QuadrupoleBD::forces() {
 		felynew2=0.0;
             
             }
-            
-            
             
             F[nxyz[i][0]] = F[nxyz[i][0]] - felxnew - Fpp*rij[0]/rijsep;
             F[nxyz[i][1]] = F[nxyz[i][1]] - felynew - Fpp*rij[1]/rijsep;
@@ -471,4 +471,16 @@ void Model_QuadrupoleBD::calDss() {
         } 
 
         }
+}
+
+void Model_QuadrupoleBD::buildlist(int i){
+    nlist[i].clear();
+    for (int kk = i+1; kk < np; kk++){
+	double rijx = r[nxyz[kk][0]] - r[nxyz[i][0]];
+	double rijy = r[nxyz[kk][1]] - r[nxyz[i][1]];
+	double rijsep = sqrt(rijx*rijx+rijy*rijy);
+	if (rijsep < rcut){
+	    nlist[i].push_back(kk);
+	}
+    }
 }

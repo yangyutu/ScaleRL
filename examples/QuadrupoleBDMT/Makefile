@@ -1,7 +1,7 @@
 
 include ../Makefile.common
 
-CXXFLAGS += $(DEBUGFLAG) -I../quadrupoleMT
+CXXFLAGS += $(RELEASEFLAG) -I../quadrupoleMT
 OBJ= RLSolver_2DTableMT.o Model_QuadrupoleBD.o mainC.o
 #please check your compiler for these options
 
@@ -21,4 +21,4 @@ RLSolver_2DTableMT.o: RLSolver_2DTableMT.cpp
 	$(CXX) -c $(CXXFLAGS) $^
 
 clean:   
-	rm -f core* test *.o *.il
+	rm -f core* test test_static *.o *.il
