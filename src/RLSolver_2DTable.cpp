@@ -7,6 +7,8 @@ int RLSolver_2DTable::n_rows, RLSolver_2DTable::n_cols, RLSolver_2DTable::numAct
 double RLSolver_2DTable::dx1, RLSolver_2DTable::dx2, RLSolver_2DTable::minx1, RLSolver_2DTable::minx2;
 arma::Mat<int> RLSolver_2DTable::count;
 std::vector<Experience> RLSolver_2DTable::experienceVec;
+arma::cube RLSolver_2DTable::CountMap;
+
 
 RLSolver_2DTable::RLSolver_2DTable(std::shared_ptr<BaseModel> m, int Dim, 
         ReinforcementLearning::QLearningSolverParameter para, int n_row0, int n_col0, 
@@ -22,6 +24,7 @@ RLSolver_2DTable::RLSolver_2DTable(std::shared_ptr<BaseModel> m, int Dim,
     numActions = model->getNumActions();
     QTable.zeros(n_rows, n_cols, numActions);
     count.zeros(n_rows, n_cols);
+    CountMap.zeros(n_rows, n_cols, 4);
 }
 
 
@@ -107,7 +110,7 @@ void RLSolver_2DTable::updateQ(Experience exp) {
     getMaxQ(exp.newState, &maxQ, &action);
     std::pair<int, int> index0 = stateToIndex(exp.oldState);
     count(index0.first,index0.second) += 1;
-    ++CountMap(index0.first,index0.second,exp.action);
+    CountMap(index0.first,index0.second,exp.action+1) += 1;
     QTable(index0.first,index0.second,exp.action) += 
             (1 / (1 + CountMap(index0.first,index0.second,exp.action))) * (exp.reward + discount * maxQ - QTable(index0.first, index0.second, exp.action));
 }

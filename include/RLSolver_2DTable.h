@@ -14,6 +14,7 @@ namespace ReinforcementLearning {
         virtual ~RLSolver_2DTable() {}
         virtual void train();
         virtual void test();
+	static arma::cube CountMap;
         static void replayExperience();
         static void updateQ(Experience);
         static void getMaxQ(const State& S, double* Q, int* action);
@@ -28,6 +29,7 @@ namespace ReinforcementLearning {
         static int n_rows, n_cols, numActions;
         static double dx1, dx2, minx1, minx2;
         static arma::Mat<int> count;
+	
         static std::vector<Experience> experienceVec;
 
     };

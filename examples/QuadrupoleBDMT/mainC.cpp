@@ -127,26 +127,34 @@ void writeOp(double t, double psi6, double c6, double rg, double lambda, int opt
     os << std::endl;
 }
 
-void writeCountMap(arma::cube CountMap, int n_rows, int n_cols) {
-    std::ofstream OCountMap1, OCountMap2, OCountMap3, OCountMap4;
-    OCountMap1.open("Option1.dat");
-    OCountMap2.open("Option2.dat");
-    OCountMap3.open("Option3.dat");
-    OCountMap4.open("Option4.dat");
-    for (int i = 0; i < n_rows; i++) {
-	for (int j = 0; j < n_cols; j++){
-	    OCountMap1 << CountMap(n_rows, n_cols, 1) << "\t";
-	    OCountMap2 << CountMap(n_rows, n_cols, 2) << "\t";
-	    OCountMap3 << CountMap(n_rows, n_cols, 3) << "\t";
-	    OCountMap4 << CountMap(n_rows, n_cols, 4) << "\t";
-	    if (j == n_cols - 1){
-		OCountMap1 << "\n";
-		OCountMap2 << "\n";
-		OCountMap3 << "\n";
-		OCountMap4 << "\n";
-	    }
-	}
-    }
+void writeCountMap(arma::cube CountMap) {
+    arma::mat temp1 = CountMap.slice(1);
+    temp1.save("Option1.dat", arma::raw_ascii);
+    arma::mat temp2 = CountMap.slice(2);
+    temp2.save("Option2.dat", arma::raw_ascii);
+    arma::mat temp3 = CountMap.slice(3);
+    temp3.save("Option3.dat", arma::raw_ascii);
+    arma::mat temp4 = CountMap.slice(4);
+    temp4.save("Option4.dat", arma::raw_ascii);
+//    std::ofstream OCountMap1, OCountMap2, OCountMap3, OCountMap4;
+//    OCountMap1.open("Option1.dat");
+//    OCountMap2.open("Option2.dat");
+//    OCountMap3.open("Option3.dat");
+//    OCountMap4.open("Option4.dat");
+//    for (int i = 0; i < n_rows; i++) {
+//	for (int j = 0; j < n_cols; j++){
+//	    OCountMap1 << CountMap(i, j, 1) << "\t";
+//	    OCountMap2 << CountMap(i, j, 2) << "\t";
+//	    OCountMap3 << CountMap(i, j, 3) << "\t";
+//	    OCountMap4 << CountMap(i, j, 4) << "\t";
+//	    if (j == n_cols - 1){
+//		OCountMap1 << "\n";
+//		OCountMap2 << "\n";
+//		OCountMap3 << "\n";
+//		OCountMap4 << "\n";
+//	    }
+//	}
+//    }
 }
 
 void testQLearning(char* filename2){
@@ -186,8 +194,6 @@ void testQLearningMT(char* filename2, int thread){
     double dx2 = 1/Resolution;
     double minx1 = 0;
     double minx2 = 0;
-    static arma::cube CountMap;
-    CountMap.zeros(n_rows, n_cols, 4);
     int num_threads = thread;
     std::vector<std::shared_ptr<BaseModel>> models;
     for (int i = 0; i < num_threads; i++){
@@ -200,6 +206,26 @@ void testQLearningMT(char* filename2, int thread){
     RLSolver_2DTableMT rlSolver(models, 2, message3, n_rows, n_cols, dx1, dx2, minx1, minx2,num_threads);
     rlSolver.getQTable().slice(3).fill(5);
 //    rlSolver.loadQTable("./QTableFile/QTableFinal");
+    for (int option = 1; option < 5; option++){
+        for (int i = 0; i < Resolution; i++){
+            for (int j = 0; j < Resolution; j++){
+                std::cout << RLSolver_2DTableMT::CountMap(i,j,option) << '\t';
+            }
+            std::cout << '\n';
+        }
+        std::cout << '\n';
+        std::cout << '\n';
+    }   
     rlSolver.train();
-    writeCountMap(CountMap, n_rows, n_cols);
+    for (int option = 1; option < 5; option++){
+        for (int i = 0; i < Resolution; i++){
+            for (int j = 0; j < Resolution; j++){
+                std::cout << RLSolver_2DTableMT::CountMap(i,j,option) << '\t';
+            }
+            std::cout << '\n';
+        }
+        std::cout << '\n';
+        std::cout << '\n';
+    }
+
 }
