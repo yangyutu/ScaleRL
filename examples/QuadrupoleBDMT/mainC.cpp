@@ -46,8 +46,8 @@ void testCppModel(std::string filename){
         model->createInitialState();
         std::cout << i << std::endl;
         iter = 0;
-        while (iter < 1000) {
-//        while (iter < 1000 && !model->terminate()) {
+//       while (iter < 1000) {
+        while (iter < 1000 && !model->terminate()) {
             model->run(3);
             iter++;
         }
@@ -186,7 +186,7 @@ void testQLearningMT(char* filename2, int thread){
     ReadProtoFromTextFile(filename2, &message2);
     message3 = message2.qlearningsolverparameter();
     
-    int Resolution = 4;
+    int Resolution = 20;
     int n_rows = Resolution;
     int n_cols = Resolution;
     
@@ -206,26 +206,5 @@ void testQLearningMT(char* filename2, int thread){
     RLSolver_2DTableMT rlSolver(models, 2, message3, n_rows, n_cols, dx1, dx2, minx1, minx2,num_threads);
     rlSolver.getQTable().slice(3).fill(5);
 //    rlSolver.loadQTable("./QTableFile/QTableFinal");
-    for (int option = 1; option < 5; option++){
-        for (int i = 0; i < Resolution; i++){
-            for (int j = 0; j < Resolution; j++){
-                std::cout << RLSolver_2DTableMT::CountMap(i,j,option) << '\t';
-            }
-            std::cout << '\n';
-        }
-        std::cout << '\n';
-        std::cout << '\n';
-    }   
     rlSolver.train();
-    for (int option = 1; option < 5; option++){
-        for (int i = 0; i < Resolution; i++){
-            for (int j = 0; j < Resolution; j++){
-                std::cout << RLSolver_2DTableMT::CountMap(i,j,option) << '\t';
-            }
-            std::cout << '\n';
-        }
-        std::cout << '\n';
-        std::cout << '\n';
-    }
-
 }

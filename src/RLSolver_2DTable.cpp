@@ -113,6 +113,9 @@ void RLSolver_2DTable::updateQ(Experience exp) {
     CountMap(index0.first,index0.second,exp.action+1) += 1;
     QTable(index0.first,index0.second,exp.action) += 
             (1 / (1 + CountMap(index0.first,index0.second,exp.action))) * (exp.reward + discount * maxQ - QTable(index0.first, index0.second, exp.action));
+    std::cout << index0.first << ' ' << index0.second << exp.action << std::endl;
+
+
 }
 
 void RLSolver_2DTable::getMaxQ(const State& S, double* maxQ, int* action){
