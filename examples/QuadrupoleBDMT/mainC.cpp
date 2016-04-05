@@ -186,14 +186,14 @@ void testQLearningMT(char* filename2, int thread){
     ReadProtoFromTextFile(filename2, &message2);
     message3 = message2.qlearningsolverparameter();
     
-    int Resolution = 20;
+    int Resolution = 17;
     int n_rows = Resolution;
     int n_cols = Resolution;
     
-    double dx1 = 1/Resolution;
-    double dx2 = 1/Resolution;
-    double minx1 = 0;
-    double minx2 = 0;
+    double dx1 = 1.0/Resolution;
+    double dx2 = 1.0/Resolution;
+    double minx1 = 0.0;
+    double minx2 = 0.0;
     int num_threads = thread;
     std::vector<std::shared_ptr<BaseModel>> models;
     for (int i = 0; i < num_threads; i++){
@@ -204,7 +204,7 @@ void testQLearningMT(char* filename2, int thread){
     
     
     RLSolver_2DTableMT rlSolver(models, 2, message3, n_rows, n_cols, dx1, dx2, minx1, minx2,num_threads);
-    rlSolver.getQTable().slice(3).fill(5);
+    rlSolver.getQTable().slice(3).fill(1);
 //    rlSolver.loadQTable("./QTableFile/QTableFinal");
     rlSolver.train();
 }

@@ -22,6 +22,8 @@ protected:
     static const int rgdssbin = 25;
     static const int distdssbin = 50;
     std::vector<std::vector<int>> nlist;
+    int R, n_rows, n_cols;
+    double dx1, dx2;
     int opt, nstep;
     int trajOutputInterval;
     int timeCounter,fileCounter;

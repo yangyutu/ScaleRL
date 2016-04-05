@@ -79,11 +79,12 @@ void RLSolver_2DTableMT::trainOnMT(std::shared_ptr<BaseModel> m,int thread_idx,R
         while (!model->terminate() && iter < epiLength) {
 //      2.1 读取当前OP            
             State oldState = model->getCurrState(); 
+//	    std::cout << oldState[0] << ' ' << oldState[1] << std::endl;
 //      2.2 决定OPT            
             if (randChoice->nextDou() < epi){ 
                 std::unique_lock<std::mutex> lk(RLSolver_2DTableMT::QTable_mutex);
                 RLSolver_2DTableMT::getMaxQ(oldState,&maxQ,&action); 
-                lk.unlock();              
+                lk.unlock();            
             } else { 
                 action = randChoice->nextInt();
             }
@@ -102,7 +103,7 @@ void RLSolver_2DTableMT::trainOnMT(std::shared_ptr<BaseModel> m,int thread_idx,R
     std::cout << "Thread" << thread_idx << " replay experience set size: "<< 
         RLSolver_2DTableMT::experienceSetSize << std::endl;
     std::unique_lock<std::mutex> lk(RLSolver_2DTableMT::QTable_mutex);
-    RLSolver_2DTableMT::replayExperience();
+    RLSolver_2DTableMT::replayExperience(RLSolver_2DTableMT::experienceSetSize);
     lk.unlock();
     }
     std::cout << "Thread " << thread_idx << " FINISH with experience set size: "<< RLSolver_2DTableMT::experienceSetSize << std::endl;

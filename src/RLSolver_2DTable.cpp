@@ -1,4 +1,5 @@
 #include "RLSolver_2DTable.h"
+#include <math.h>
 
 using namespace ReinforcementLearning;
 
@@ -71,11 +72,21 @@ void RLSolver_2DTable::train() {
         this->outputPolicy();
 }
 
+void RLSolver_2DTable::replayExperience(int experienceSetSize){
+    // replay in reverse order
+    if (experienceSetSize> 1000){
+	for (int RC = experienceSetSize-1; RC > experienceSetSize - 1001; --RC){
+	    auto exp = RLSolver_2DTable::experienceVec.at(RC);
+            updateQ(exp);
+	}
+    } else{
+	for (auto exp = RLSolver_2DTable::experienceVec.rbegin(); exp != RLSolver_2DTable::experienceVec.rend(); ++exp){updateQ(*exp);}
+    }
+}
+
 void RLSolver_2DTable::replayExperience(){
     // replay in reverse order
-    for (auto exp = RLSolver_2DTable::experienceVec.rbegin(); exp != RLSolver_2DTable::experienceVec.rend(); ++exp){
-        updateQ(*exp);
-    }
+    for (auto exp = RLSolver_2DTable::experienceVec.rbegin(); exp != RLSolver_2DTable::experienceVec.rend(); ++exp){updateQ(*exp);}
 }
 
 void RLSolver_2DTable::test(){
@@ -110,12 +121,9 @@ void RLSolver_2DTable::updateQ(Experience exp) {
     getMaxQ(exp.newState, &maxQ, &action);
     std::pair<int, int> index0 = stateToIndex(exp.oldState);
     count(index0.first,index0.second) += 1;
-    CountMap(index0.first,index0.second,exp.action+1) += 1;
+    CountMap(index0.first,index0.second,exp.action) += 1;
     QTable(index0.first,index0.second,exp.action) += 
-            (1 / (1 + CountMap(index0.first,index0.second,exp.action))) * (exp.reward + discount * maxQ - QTable(index0.first, index0.second, exp.action));
-    std::cout << index0.first << ' ' << index0.second << exp.action << std::endl;
-
-
+            (1.0/(1.0+ pow(CountMap(index0.first,index0.second,exp.action),0.501))) * (exp.reward + discount * maxQ - QTable(index0.first, index0.second, exp.action));
 }
 
 void RLSolver_2DTable::getMaxQ(const State& S, double* maxQ, int* action){
@@ -132,14 +140,15 @@ void RLSolver_2DTable::getMaxQ(const State& S, double* maxQ, int* action){
 
 std::pair<int, int> RLSolver_2DTable::stateToIndex(const State& S){
     int idx1, idx2;
+//    std::cout << S[0] << ' ' << S[1] << std::endl;
+//    std::cout << minx1 << ' ' << dx1 << std::endl;
     idx1 = (int) ((S[0] - minx1)/dx1);
     idx2 = (int) ((S[1] - minx2)/dx2);
     if (idx1 < 0) idx1 = 0;
     if (idx1 >= n_rows) idx1 = n_rows - 1; 
     if (idx2 < 0) idx2 = 0;
-    if (idx2 >= n_cols) idx2 = n_cols - 1; 
-    
-    
+    if (idx2 >= n_cols) idx2 = n_cols - 1;
+//    std::cout << idx1 << ' ' << idx2 << std::endl; 
     return std::pair<int, int>(idx1,idx2);
 }
 

@@ -20,8 +20,12 @@ Model_QuadrupoleBD::Model_QuadrupoleBD(std::string filetag0) {
     rgbin = 25;
     rbin = 50;
     a = 1435.0;
+    n_rows = R;
+    n_cols = R;
+    dx1 = 1.0/R;
+    dx2 = 1.0/R;
     kb = 1.380658e-23;
- 
+    int R = 20;
 
 
     for (int i = 0; i < np; i++) {
@@ -55,9 +59,9 @@ void Model_QuadrupoleBD::run(int action) {
 void Model_QuadrupoleBD::createInitialState() {
     if (fileCounter < 15) {this->readxyz("./StartMeshgridFolder/startmeshgrid1.txt");}
     else {
-    std::stringstream FileStr;
-    FileStr << this->fileCounter;
-    this->readxyz("./StartMeshgridFolder/startmeshgrid" + FileStr.str() + ".txt");
+	std::stringstream FileStr;
+	FileStr << this->fileCounter;
+	this->readxyz("./StartMeshgridFolder/startmeshgrid" + FileStr.str() + ".txt");
     }
     this->readDiffusivity("2dtabledsslam9.txt");
     std::stringstream ss;

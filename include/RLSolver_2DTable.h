@@ -15,7 +15,8 @@ namespace ReinforcementLearning {
         virtual void train();
         virtual void test();
 	static arma::cube CountMap;
-        static void replayExperience();
+        static void replayExperience(int experienceSetSize);
+	static void replayExperience();
         static void updateQ(Experience);
         static void getMaxQ(const State& S, double* Q, int* action);
         virtual arma::cube& getQTable(){return QTable;}
