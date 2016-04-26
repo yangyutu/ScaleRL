@@ -1,0 +1,35 @@
+np
+1200 3 25 100
+ploygon
+4
+nstep
+30000
+iprint
+100
+lambda
+5
+boxlen
+80 80 80 54 27
+idummy
+5
+rmin
+2.2
+dt ms
+10
+D0 (ms^-1)
+6.362e-5
+Dr (ms^-1)
+4.772e-5
+cycle
+10
+configfile
+startfluid.txt
+squarefluid.txt
+
+start.txt
+
+start3.txt
+
+
+
+
