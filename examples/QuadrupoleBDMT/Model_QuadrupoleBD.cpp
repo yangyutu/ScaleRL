@@ -3,6 +3,37 @@
 using namespace ReinforcementLearning;
 // this model is from paper Lease-squares policy iteration
 
+Model_QuadrupoleBD::Model_QuadrupoleBD(std::string filetag0,int R) {
+    filetag = filetag0;
+    //	we have three low dimensional states psi6, c6, rg
+    // nstep 10000 correspond to 1s, every run will run 1s
+    nstep = 10000;
+    stateDim = 3;
+    currState.resize(stateDim);
+    prevState.resize(stateDim);
+    dt = 1; //s
+    numActions = 4;
+    trajOutputInterval = 1;
+    fileCounter = 0;
+    rand_normal = std::make_shared<std::normal_distribution<double>>(0.0, 1.0);
+    rand_int = std::make_shared<std::uniform_int_distribution<>>(0, 1000);
+    rgbin = 25;
+    rbin = 50;
+    a = 1435.0;
+    kb = 1.380658e-23;
+    n_rows = R;
+    n_cols = R;
+    dx1 = 1.0/R;
+    dx2 = 1.0/R;
+
+    for (int i = 0; i < np; i++) {
+        nxyz[i][0] = 3 * i;
+        nxyz[i][1] = 3 * i + 1;
+        nxyz[i][2] = 3 * i + 2;
+	nlist.push_back(std::vector<int>());
+    }
+}
+
 Model_QuadrupoleBD::Model_QuadrupoleBD(std::string filetag0) {
     filetag = filetag0;
     //	we have three low dimensional states psi6, c6, rg
@@ -20,13 +51,7 @@ Model_QuadrupoleBD::Model_QuadrupoleBD(std::string filetag0) {
     rgbin = 25;
     rbin = 50;
     a = 1435.0;
-    n_rows = R;
-    n_cols = R;
-    dx1 = 1.0/R;
-    dx2 = 1.0/R;
     kb = 1.380658e-23;
-    int R = 20;
-
 
     for (int i = 0; i < np; i++) {
         nxyz[i][0] = 3 * i;
@@ -36,7 +61,7 @@ Model_QuadrupoleBD::Model_QuadrupoleBD(std::string filetag0) {
     }
 }
 
-void Model_QuadrupoleBD::run(int action) {
+void Model_QuadrupoleBD::run(int action) { //每次run 1s的traj
     this->opt = action;
     if (this->timeCounter == 0 || ((this->timeCounter + 1) % trajOutputInterval == 0)) {
         this->outputTrajectory(this->trajOs);
@@ -46,7 +71,6 @@ void Model_QuadrupoleBD::run(int action) {
     int rand = (*rand_int)(rand_generator);
     rand = 1;
     // for BD dynamics, every run will simply run 10000 steps, correspond to 1s
-    //run_fortran_(r, &np, &nstep, &psi6, &c6, &rg, &opt, &lambda, &rand, dss, dssCount);
     this->runHelper(nstep,opt);
     
     c6 = c6 / 5.6;
@@ -57,12 +81,10 @@ void Model_QuadrupoleBD::run(int action) {
 }
 
 void Model_QuadrupoleBD::createInitialState() {
-    if (fileCounter < 15) {this->readxyz("./StartMeshgridFolder/startmeshgrid1.txt");}
-    else {
-	std::stringstream FileStr;
-	FileStr << this->fileCounter;
-	this->readxyz("./StartMeshgridFolder/startmeshgrid" + FileStr.str() + ".txt");
-    }
+    std::stringstream FileStr;
+    FileStr << this->fileCounter;
+//    this->readxyz("./StartMeshgridFolder/startmeshgrid" + FileStr.str() + ".txt");
+    this->readxyz("./StartMeshgridFolder/startmeshgrid1.txt");
     this->readDiffusivity("2dtabledsslam9.txt");
     std::stringstream ss;
     std::cout << "model initialize at round " << fileCounter << std::endl;
@@ -79,7 +101,6 @@ void Model_QuadrupoleBD::createInitialState() {
     int rand = (*rand_int)(rand_generator);
     rand = 1;
     this->runHelper(temp,opt);
-    //run_fortran_(r, &np, &temp, &psi6, &c6, &rg, &opt, &lambda, &rand, dss, dssCount);
     c6 = c6 / 5.6;
     this->currState[0] = psi6;
     this->currState[1] = c6;
@@ -171,7 +192,7 @@ void Model_QuadrupoleBD::runHelper(int nstep, int controlOpt) {
     fac2 = 40.5622;
     rcut = 5.0 * a;
     re = 5.0 * a;
-    kappa = 143.5;
+    kappa = 1435.0/10;
     pfpp = 2.2975 * a;
     fcm = -0.4667;
     DG = 71.428 * a;
@@ -202,11 +223,11 @@ void Model_QuadrupoleBD::runHelper(int nstep, int controlOpt) {
     fac2 = fac2 / sqrt(dt);
 
     int step = 0;
-    this->calDss();
+    this->calDss(); //得到初始时刻每个particle的Diffusion const
     while (step < nstep) {
         for (int j = 0; j < np; j++) {
             for (int k = 0; k < 3; k++) {
-                D[nxyz[j][k]] = dsscalcu[j];
+                D[nxyz[j][k]] = dsscalcu[j]; //每个particle每个方向上的Diffusion const都一样
                 double randTemp = (*rand_normal)(rand_generator);
                 randisp[nxyz[j][k]] =  randTemp * sqrt(1.0 / D[nxyz[j][k]]);
             }
@@ -223,7 +244,7 @@ void Model_QuadrupoleBD::runHelper(int nstep, int controlOpt) {
     this->calOp();
 }
 
-void Model_QuadrupoleBD::forces(int step) {
+void Model_QuadrupoleBD::forces(int sstep) {
     double RX, RY, EMAGI, EMAGJ, dE2x, dE2y, Fdepx, Fdepy;
     double STEP = 1e-3;
     double rij[3];
@@ -231,23 +252,21 @@ void Model_QuadrupoleBD::forces(int step) {
     double felxnew,felxnew2,felynew,felynew2;
     Fhw = 0.417;
     double Fo = 1e18*0.75*lambda*kb*(273+tempr)/a;
-    for (int i = 0 ; i < np3; i++) {
-        F[i] = 0.0;
-    }
+    for (int i = 0 ; i < np3; i++) {F[i] = 0.0;} //初始化force
     for (int i = 0; i < np-1; i++){
-        Exi = -4.0*r[nxyz[i][0]]/DG;
+        Exi = -4.0*r[nxyz[i][0]]/DG;//电场强度
         Eyi = 4.0*r[nxyz[i][1]]/DG;
         Ezi = 0;
-	if ((step+1)%100 == 0 || step ==0 ){
-	    buildlist(i);
-	}
+	if ((sstep+1)%100 == 0 || sstep ==0 ){
+	    buildlist(i); //每100步更新一次particle相互距离的关系，如果距离小于5a则认为particle相互有关联
+	} 
 	int nlistsize = nlist[i].size();
         for (int jj = 0; jj < nlistsize; jj++){
-	    int j = nlist[i][jj];
+	    int j = nlist[i][jj];//与particle i有关联的particle的index
             rij[0] = r[nxyz[j][0]] - r[nxyz[i][0]];
             rij[1] = r[nxyz[j][1]] - r[nxyz[i][1]];
-            double rijsep = sqrt(rij[0]*rij[0]+rij[1]*rij[1]);
-            if (rijsep < 2*a){
+	    double rijsep = sqrt(rij[0]*rij[0] + rij[1]*rij[1]);
+            if (rijsep < 2*a){ //overlap
                 Fpp = Fhw;
                 felx = 0.0;
                 fely = 0.0;
@@ -257,7 +276,7 @@ void Model_QuadrupoleBD::forces(int step) {
             } else {
                 Fpp = 0;
             }
-            
+// particle-particle interaction & dipole-dipole interaction             
             if (rijsep > 2*a && rijsep < re){
                 Exj = -4.0*r[nxyz[j][0]]/DG;
                 Eyj = 4.0*r[nxyz[j][1]]/DG;
@@ -303,7 +322,7 @@ void Model_QuadrupoleBD::forces(int step) {
             
         }
     }
-       
+// 电场受力       
     for (int i = 0; i < np; i++) {
         RX = r[nxyz[i][0]];
         RY = r[nxyz[i][1]];
@@ -330,7 +349,6 @@ void Model_QuadrupoleBD::forces(int step) {
 double Model_QuadrupoleBD::EMAG(double RX, double RY) {
 
     double correctfactor;
-
     double RT = sqrt(RX * RX + RY * RY);
     double result = 4 * RT / DG;
     if (ecorrectflag == 1) {
@@ -446,35 +464,26 @@ void Model_QuadrupoleBD::calDss() {
     double calcudss = 0.5 * (dssmax + dssmin);
     double xmean = 0.0;
     double ymean = 0.0;
-
+// 求300个particles的平均位置
     for (int i = 0; i < np; i++) {
         xmean = xmean + r[nxyz[i][0]];
         ymean = ymean + r[nxyz[i][1]];
     }
     xmean = xmean / np;
     ymean = ymean / np;
-
+// 根据距中心的远近和当前300个particles位置的Rg值估算每个particles的Diffusion constant
     for (int i = 0; i < np; i++) {
         double disttemp = pow(r[nxyz[i][0]] - xmean, 2) + pow(r[nxyz[i][1]] - ymean, 2);
         disttemp = sqrt(disttemp);
         int distbinindex = (int) ((disttemp - distmin) / deldist) + 1;
         if (rgbinindex >= 1 && rgbinindex <= rgdssbin) {
             if (distbinindex >= 1 && distbinindex <= distdssbin) {
-
                 if (dsscount[rgbinindex-1][distbinindex-1] >= 1) {
                     dsscalcu[i] = dssarray[rgbinindex - 1][distbinindex - 1];
-                } else {
-                    dsscalcu[i] = dssmax;
-                }
-            } else {
-
-                dsscalcu[i] = dssmax;
-            } 
-        } else if (rgbinindex >= rgdssbin) {
-            dsscalcu[i] = dssmin;
-        } 
-
-        }
+                } else {dsscalcu[i] = dssmax;}
+            } else {dsscalcu[i] = dssmax;} 
+        } else if (rgbinindex >= rgdssbin) {dsscalcu[i] = dssmin;}
+    }
 }
 
 void Model_QuadrupoleBD::buildlist(int i){

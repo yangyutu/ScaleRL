@@ -16,7 +16,7 @@ RLSolver_2DTableMT::RLSolver_2DTableMT(std::vector<std::shared_ptr<BaseModel>> m
 void RLSolver_2DTableMT::train() {
     int QTableOutputInterval = trainingPara.qtableoutputinterval(); //1000
     int ExperienceReplayInterval = trainingPara.experiencereplayinterval(); //30
-    experienceStopCriterion = trainingPara.experiencestopcriterion();   //1e5
+    experienceStopCriterion = trainingPara.experiencestopcriterion();   //1e5最大experience次数
     int experienceReplayCounter = 0;
     int QTableOutputSizeCounter = 0;
     
@@ -26,18 +26,18 @@ void RLSolver_2DTableMT::train() {
     }
     
     while (RLSolver_2DTableMT::threshFinishCount_global < this->num_threads) {  
-        if (RLSolver_2DTableMT::experienceSetSize > experienceStopCriterion) {
+        if (RLSolver_2DTableMT::experienceSetSize > experienceStopCriterion) { //Experience多于1e5次自动退出
             std::cout << "Main Thread: experience set satisfied: "<< RLSolver_2DTableMT::experienceSetSize << std::endl;            
             finish_global = true;    
             break;
         }   
         
-        if (RLSolver_2DTableMT::experienceSetSize > QTableOutputSizeCounter){
+        if (RLSolver_2DTableMT::experienceSetSize > QTableOutputSizeCounter){ //每存储1000次experience输出一次QTable
             QTableOutputSizeCounter += QTableOutputInterval;
             for( int i = 0; i < RLSolver_2DTableMT::numActions; i++) {
                 std::stringstream ss;        
                 ss << (RLSolver_2DTableMT::experienceSetSize/QTableOutputInterval);
-                this->outputQ("QTable_" + ss.str() + "iter");                
+                this->outputQ("QTable_" + ss.str() + "iter");
             }
             std::stringstream ss;        
             ss << (RLSolver_2DTableMT::experienceSetSize/QTableOutputInterval);
@@ -48,9 +48,9 @@ void RLSolver_2DTableMT::train() {
     
     std::cout << "Main thread experience set size: "<< RLSolver_2DTableMT::experienceVec.size() << std::endl;
         
-        this->outputQ("QTableFinal");
-        this->outputPolicy();
-        std::cout << "Main thread: Training finish!" << std::endl;
+    this->outputQ("QTableFinal");
+    this->outputPolicy();
+    std::cout << "Main thread: Training finish!" << std::endl;
     delete[] threads;   
 }
 

@@ -24,7 +24,7 @@ void testQLearningMT(char* filename2, int t);
 
 
 int main(int argc, char* argv[]) {
-//    testCppModel("traj/");
+    testCppModel("traj/");
 //    testCppModelMT(boost::lexical_cast<int>(argv[1]));
 //    testQLearning(argv[1]);
     if ( argc == 3) {
@@ -42,12 +42,12 @@ void testCppModel(std::string filename){
     
     int iter;
     
-    for (int i = 0; i < 50; i++) {
+    for (int i = 0; i < 10; i++) {
         model->createInitialState();
         std::cout << i << std::endl;
         iter = 0;
-//       while (iter < 1000) {
-        while (iter < 1000 && !model->terminate()) {
+       while (iter < 300) {
+//        while (iter < 300 && !model->terminate()) {
             model->run(3);
             iter++;
         }
@@ -186,12 +186,12 @@ void testQLearningMT(char* filename2, int thread){
     ReadProtoFromTextFile(filename2, &message2);
     message3 = message2.qlearningsolverparameter();
     
-    int Resolution = 17;
-    int n_rows = Resolution;
-    int n_cols = Resolution;
+    int Resolution = 5;
+    int n_rows = 5;
+    int n_cols = 5;
     
-    double dx1 = 1.0/Resolution;
-    double dx2 = 1.0/Resolution;
+    double dx1 = 0.2;
+    double dx2 = 0.2;
     double minx1 = 0.0;
     double minx2 = 0.0;
     int num_threads = thread;
@@ -199,7 +199,7 @@ void testQLearningMT(char* filename2, int thread){
     for (int i = 0; i < num_threads; i++){
         std::stringstream ss;
         ss << i;
-        models.push_back(std::shared_ptr<BaseModel>(new Model_QuadrupoleBD("traj/thread" + ss.str() + "control")));
+        models.push_back(std::shared_ptr<BaseModel>(new Model_QuadrupoleBD("traj/thread" + ss.str() + "control", Resolution)));
     }
     
     

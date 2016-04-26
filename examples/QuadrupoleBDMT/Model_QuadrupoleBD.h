@@ -10,6 +10,7 @@ namespace ReinforcementLearning {
 class Model_QuadrupoleBD: public Model_QuadrupoleBase{
 public:
     Model_QuadrupoleBD(){}
+    Model_QuadrupoleBD(std::string filetag0, int R);
     Model_QuadrupoleBD(std::string filetag0);
     virtual ~Model_QuadrupoleBD(){ }
     virtual void run(int action);
