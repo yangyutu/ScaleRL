@@ -1,0 +1,58 @@
+gfortran -c commondataset.f
+gfortran -c main.f
+main.f:34.19:
+
+      read(1,*)  D0                                                     
+                   1
+Error: Symbol 'd0' at (1) has no IMPLICIT type
+main.f:36.19:
+
+      read(1,*)  Dr                                                     
+                   1
+Error: Symbol 'dr' at (1) has no IMPLICIT type
+main.f:164.11:
+
+      drift=-(r_cube(j,i))*lambda*dt*D0                                 
+           1
+Error: Symbol 'drift' at (1) has no IMPLICIT type
+main.f:32.19:
+
+      read(1,*)  dt                                                     
+                   1
+Error: Symbol 'dt' at (1) has no IMPLICIT type
+main.f:257.27:
+
+      call calorder(rg, psi,psi_loc,rmin)                               
+                           1
+Error: Symbol 'psi' at (1) has no IMPLICIT type
+main.f:165.17:
+
+         randdisp=(ranf(idummy)-0.5)*sqrt(D0*24.0*dt)                   
+                 1
+Error: Symbol 'randdisp' at (1) has no IMPLICIT type
+main.f:30.21:
+
+      read(1,*)  rmin                                                   
+                     1
+Error: Symbol 'rmin' at (1) has no IMPLICIT type
+main.f:81.17:
+
+          do k=1,polygon                                                
+                 1
+Warning: Deleted feature: End expression in DO loop at (1) must be integer
+main.f:171.16:
+
+         do k=1,polygon                                                 
+                1
+Warning: Deleted feature: End expression in DO loop at (1) must be integer
+main.f:216.17:
+
+          do k=1,polygon                                                
+                 1
+Warning: Deleted feature: End expression in DO loop at (1) must be integer
+main.f:261.28:
+
+     +          ,0.0,phi(i), psi_loc(i)                                 
+                            1
+Error: Function 'psi_loc' at (1) has no IMPLICIT type
+make: *** [main.o] Error 1

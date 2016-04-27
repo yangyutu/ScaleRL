@@ -1,0 +1,8 @@
+gfortran -c commondataset.f
+gfortran -c main.f
+gfortran -c ranf.f
+gfortran -c testoverlap3D.f
+gfortran -c calorder.f
+gfortran -c getrotate.f
+gfortran -c rotate3D.f
+gfortran -O3 -o bdpd main.o ranf.o testoverlap3D.o commondataset.o calorder.o getrotate.o rotate3D.o

@@ -83,8 +83,8 @@ void Model_QuadrupoleBD::run(int action) { //每次run 1s的traj
 void Model_QuadrupoleBD::createInitialState() {
     std::stringstream FileStr;
     FileStr << this->fileCounter;
-//    this->readxyz("./StartMeshgridFolder/startmeshgrid" + FileStr.str() + ".txt");
-    this->readxyz("./StartMeshgridFolder/startmeshgrid1.txt");
+    this->readxyz("./StartMeshgridFolder/startmeshgrid" + FileStr.str() + ".txt");
+//    this->readxyz("./StartMeshgridFolder/startmeshgrid1.txt");
     this->readDiffusivity("2dtabledsslam9.txt");
     std::stringstream ss;
     std::cout << "model initialize at round " << fileCounter << std::endl;

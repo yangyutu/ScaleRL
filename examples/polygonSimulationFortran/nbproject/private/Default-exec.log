@@ -1,0 +1,104 @@
+called: gfortran
+	/home/aledonbde/Desktop/ScaleRL/examples/polygonSimulationFortran
+	gfortran
+	-c
+	commondataset.f
+
+called: gfortran
+	/home/aledonbde/Desktop/ScaleRL/examples/polygonSimulationFortran
+	gfortran
+	-c
+	main.f
+
+called: gfortran
+	/home/aledonbde/Desktop/ScaleRL/examples/polygonSimulationFortran
+	gfortran
+	-c
+	ranf.f
+
+called: gfortran
+	/home/aledonbde/Desktop/ScaleRL/examples/polygonSimulationFortran
+	gfortran
+	-c
+	testoverlap3D.f
+
+called: gfortran
+	/home/aledonbde/Desktop/ScaleRL/examples/polygonSimulationFortran
+	gfortran
+	-c
+	calorder.f
+
+called: gfortran
+	/home/aledonbde/Desktop/ScaleRL/examples/polygonSimulationFortran
+	gfortran
+	-c
+	getrotate.f
+
+called: gfortran
+	/home/aledonbde/Desktop/ScaleRL/examples/polygonSimulationFortran
+	gfortran
+	-c
+	rotate3D.f
+
+called: gfortran
+	/home/aledonbde/Desktop/ScaleRL/examples/polygonSimulationFortran
+	gfortran
+	-O3
+	-o
+	bdpd
+	main.o
+	ranf.o
+	testoverlap3D.o
+	commondataset.o
+	calorder.o
+	getrotate.o
+	rotate3D.o
+
+called: /usr/bin/ld
+	/home/aledonbde/Desktop/ScaleRL/examples/polygonSimulationFortran
+	/usr/bin/ld
+	--sysroot=/
+	--build-id
+	--eh-frame-hdr
+	-m
+	elf_x86_64
+	--hash-style=gnu
+	--as-needed
+	-dynamic-linker
+	/lib64/ld-linux-x86-64.so.2
+	-z
+	relro
+	-o
+	bdpd
+	/usr/lib/gcc/x86_64-linux-gnu/4.8/../../../x86_64-linux-gnu/crt1.o
+	/usr/lib/gcc/x86_64-linux-gnu/4.8/../../../x86_64-linux-gnu/crti.o
+	/usr/lib/gcc/x86_64-linux-gnu/4.8/crtbegin.o
+	-L/usr/lib/gcc/x86_64-linux-gnu/4.8
+	-L/usr/lib/gcc/x86_64-linux-gnu/4.8/../../../x86_64-linux-gnu
+	-L/usr/lib/gcc/x86_64-linux-gnu/4.8/../../../../lib
+	-L/lib/x86_64-linux-gnu
+	-L/lib/../lib
+	-L/usr/lib/x86_64-linux-gnu
+	-L/usr/lib/../lib
+	-L/usr/lib/gcc/x86_64-linux-gnu/4.8/../../..
+	main.o
+	ranf.o
+	testoverlap3D.o
+	commondataset.o
+	calorder.o
+	getrotate.o
+	rotate3D.o
+	-lgfortran
+	-lm
+	-lgcc_s
+	-lgcc
+	-lquadmath
+	-lm
+	-lgcc_s
+	-lgcc
+	-lc
+	-lgcc_s
+	-lgcc
+	/usr/lib/gcc/x86_64-linux-gnu/4.8/crtend.o
+	/usr/lib/gcc/x86_64-linux-gnu/4.8/../../../x86_64-linux-gnu/crtn.o
+

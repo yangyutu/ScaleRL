@@ -1,9 +1,9 @@
 np
-289
+300
 ploygon
 3
 nstep
-60000
+100000
 iprint
 100
 lambda
@@ -15,7 +15,7 @@ idummy
 rmin
 2.2
 dt ms
-10
+0.01
 D0 (ms^-1)
 6.362e-5
 Dr (ms^-1)

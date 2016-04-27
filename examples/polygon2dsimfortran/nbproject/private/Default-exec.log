@@ -1,0 +1,12 @@
+called: gfortran
+	/home/aledonbde/Desktop/ScaleRL/examples/polygon2dsimfortran
+	gfortran
+	-c
+	commondataset.f
+
+called: gfortran
+	/home/aledonbde/Desktop/ScaleRL/examples/polygon2dsimfortran
+	gfortran
+	-c
+	main.f
+

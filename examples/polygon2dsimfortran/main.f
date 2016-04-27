@@ -25,8 +25,6 @@
       read(1,*)
       read(1,*) lambda
       read(1,*)
-c      read(1,*)  drmax,rotmax
-c      read(1,*) 
       read(1,*)  boxlenx, boxleny
       read(1,*)
       read(1,*) idummy
@@ -43,7 +41,7 @@ c      read(1,*)
       read(1,*)
       read(1,'(a50)')  configfile
       
-           partwidth_x=boxlenx/(boxlenx/2.0-1.0)
+      partwidth_x=boxlenx/(boxlenx/2.0-1.0)
       partwidth_y=boxleny/(boxleny/2.0-1.0)
       partnmax_x=boxlenx/partwidth_x
       partnmax_y=boxleny/partwidth_y
@@ -61,84 +59,82 @@ c      read(1,*)
                write(filetemp,'(i4)') cycleindex
            end if
            
-           
-      open(10,file='mc_xyz'//trim(filetemp)//'.txt')
-      open(50,file='mc_order'//trim(filetemp)//'.txt')
+            open(10,file='mc_xyz'//trim(filetemp)//'.txt')
+            open(50,file='mc_order'//trim(filetemp)//'.txt')
       
-      a=sin(0.5*pi-pi/polygon)
+            a=sin(0.5*pi-pi/polygon)
       
-      open(20,file=configfile)
+            open(20,file=configfile)
       
-      do i=1,np
-          read(20,*) dum,r_cube(1,i),r_cube(2,i),dum,phi(i)
-          
-          r_cube(1,i)=r_cube(1,i)+0.01
-          r_cube(2,i)=r_cube(2,i)+0.02
-      end do
-      close(20)
+            do i=1,np
+                read(20,*) dum,r_cube(1,i),r_cube(2,i),dum,phi(i)
+                r_cube(1,i)=r_cube(1,i)+0.01
+                r_cube(2,i)=r_cube(2,i)+0.02
+            end do
+            close(20)
 c         generate edge center
       
-      angle=2.0/polygon
-      edgelength=a*tan(pi/polygon)
+            angle=2.0/polygon
+            edgelength=a*tan(pi/polygon)
       
-          do i=1,np
-      
-          do k=1,polygon
-      edge(1,k,i)=r_cube(1,i)+a*cos(phi(i)-0.5*pi+(k-1)*angle*pi)
-      edge(2,k,i)=r_cube(2,i)+a*sin(phi(i)-0.5*pi+(k-1)*angle*pi)
-          end do
+            do i=1,np
 
-          end do
-      edgenew=edge
-      phinew=phi
+                do k=1,polygon
+        edge(1,k,i)=r_cube(1,i)+a*cos(phi(i)-0.5*pi+(k-1)*angle*pi)
+        edge(2,k,i)=r_cube(2,i)+a*sin(phi(i)-0.5*pi+(k-1)*angle*pi)
+                end do
+
+            end do
+            edgenew=edge
+            phinew=phi
       
 c     first test overlapping of initial configurations
-      overlap=0
-      do p1=1,np-1
-          do p2=p1+1,np
-              call testoverlap(p1,p2,overlap)
-              if(overlap .eq. 1) then
-                  write(*,*) 'overlap in initial config'
-              end if
-          end do
-      end do
+            overlap=0
+            do p1=1,np-1
+                do p2=p1+1,np
+                    call testoverlap(p1,p2,overlap)
+                    if(overlap .eq. 1) then
+                        write(*,*) 'overlap in initial config'
+                    end if
+                end do
+            end do
       
       
 c         first parition the space
       
 
-         partcount=0
-        partlist=0
-        do i=1,Np
+            partcount=0
+            partlist=0
+            do i=1,Np
         
         partindex_x=int((r_cube(1,i)-partlimit_x)/partwidth_x)+1
         partindex_y=int((r_cube(2,i)-partlimit_y)/partwidth_y)+1
         
-        if(partindex_x .gt. partnmax_x) then
-            partindex_x=1
-        end if
-        
-        if(partindex_y .gt. partnmax_y) then
-            partindex_y=1
-        end if
-        partcount(partindex_x,partindex_y)=
-     +   partcount(partindex_x,partindex_y)+1
-        partlist(partcount(partindex_x,partindex_y),
-     +   partindex_x,partindex_y)=i
-        
-        partrecord(1,i)=partindex_x
-        partrecord(2,i)=partindex_y
+            if(partindex_x .gt. partnmax_x) then
+                partindex_x=1
+            end if
 
-        end do
-       open(99,file='text.txt')
+            if(partindex_y .gt. partnmax_y) then
+                partindex_y=1
+            end if
+            partcount(partindex_x,partindex_y)=
+     +      partcount(partindex_x,partindex_y)+1
+            partlist(partcount(partindex_x,partindex_y),
+     +      partindex_x,partindex_y)=i
+        
+            partrecord(1,i)=partindex_x
+            partrecord(2,i)=partindex_y
+
+            end do
+            open(99,file='text.txt')
         
         do i=1,partnmax_x
-        do j=1,partnmax_y
-        do k=1,partcount(i,j)
+            do j=1,partnmax_y
+                do k=1,partcount(i,j)
         write(99,*) i,j, partlist(k,i,j),partcount(i,j),
      +   partrecord(1,partlist(k,i,j)),partrecord(2,partlist(k,i,j))
-        end do
-        end do
+                end do
+            end do
         end do
         close(99)
       
