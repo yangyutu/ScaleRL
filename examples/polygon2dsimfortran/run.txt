@@ -1,15 +1,15 @@
 np
-1200 3 25 100
+289
 ploygon
-4
+3
 nstep
-30000
+60000
 iprint
 100
 lambda
-5
+1
 boxlen
-80 80 80 54 27
+60 60 54 27
 idummy
 5
 rmin
@@ -20,10 +20,9 @@ D0 (ms^-1)
 6.362e-5
 Dr (ms^-1)
 4.772e-5
-cycle
-10
+ncycle
+2
 configfile
-startfluid.txt
 squarefluid.txt
 
 start.txt
