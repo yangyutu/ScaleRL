@@ -65,7 +65,7 @@ void RLSolver_2DTableMT::trainOnMT(std::shared_ptr<BaseModel> m,int thread_idx,R
     int ExperienceReplayInterval = trainingPara.experiencereplayinterval();
     std::shared_ptr<BaseModel> model = m;
     std::shared_ptr<RandomStream> randChoice = std::make_shared<RandomStream>(0, model->getNumActions() - 1);
-//  每个线程每次组装过程
+//  每个线程每次过程
     for (int i = 0; i < maxIter; i++) {
         std::cout << "training Episodes " << i << " from thread " << thread_idx << std::endl;
         if (RLSolver_2DTableMT::finish_global){
@@ -79,7 +79,6 @@ void RLSolver_2DTableMT::trainOnMT(std::shared_ptr<BaseModel> m,int thread_idx,R
         while (!model->terminate() && iter < epiLength) {
 //      2.1 读取当前OP            
             State oldState = model->getCurrState(); 
-//	    std::cout << oldState[0] << ' ' << oldState[1] << std::endl;
 //      2.2 决定OPT            
             if (randChoice->nextDou() < epi){ 
                 std::unique_lock<std::mutex> lk(RLSolver_2DTableMT::QTable_mutex);

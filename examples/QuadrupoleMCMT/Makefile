@@ -2,7 +2,7 @@
 include ../Makefile.common
 
 CXXFLAGS += $(RELEASEFLAG) -I../quadrupoleMT
-OBJ= RLSolver_2DTableMT.o Model_QuadrupoleBD.o mainC.o
+OBJ= RLSolver_2DTableMT.o Model_QuadrupoleMC.o mainC.o
 #please check your compiler for these options
 
 LDFLAG += -lgfortran

@@ -1,0 +1,7 @@
+g++ -c -std=c++0x -I/home/aledonbde/Downloads/armadillo-6.500.5/include -I../../include -I/home/aledonbde/workspace/libs/gtest-1.7.0/include -I/opt/boost/boost_1_57_0 -I/usr/local/include -D__LINUX -DARMA_DONT_USE_WRAAPER  -O3 -march=native -DARMA_NO_DEBUG -I../quadrupoleMT RLSolver_2DTableMT.cpp
+g++ -c -std=c++0x -I/home/aledonbde/Downloads/armadillo-6.500.5/include -I../../include -I/home/aledonbde/workspace/libs/gtest-1.7.0/include -I/opt/boost/boost_1_57_0 -I/usr/local/include -D__LINUX -DARMA_DONT_USE_WRAAPER  -O3 -march=native -DARMA_NO_DEBUG -I../quadrupoleMT Model_QuadrupoleBD.cpp
+Model_QuadrupoleBD.cpp:1:32: fatal error: Model_QuadrupoleMC.h: No such file or directory
+ #include "Model_QuadrupoleMC.h"
+                                ^
+compilation terminated.
+make: *** [Model_QuadrupoleBD.o] Error 1
