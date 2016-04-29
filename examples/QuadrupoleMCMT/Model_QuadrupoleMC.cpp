@@ -51,17 +51,19 @@ void Model_QuadrupoleMC::createInitialState() {
     this->trajOs.open(filetag + "xyz_" + ss.str() + ".dat");
     this->opOs.open(filetag + "op" + ss.str() + ".dat");
     this->timeCounter = 0;
+    this->InitializeEdge();
     for (int i = 0; i < np - 1; i++){
         for (int j = i+1; j < np; j++){
             if(this->CheckOverlap(i,j) > 2){
-                std::cout << "Initial State Overlaps" << std::endl;
+                std::cout << "Initial State Overlaps Between Particle " 
+                        << i+1 << " and " << j+1<< std::endl;
                 exit(2);
             }            
         }
     }
+    std::cout << " No Overlapping at Starting State" << std::endl;
     this->runHelper(0,3);
     this->InitializeIndexMap();
-    this->InitializeEdge();
     c6 = c6 / 5.6;
     this->currState[0] = psi6;
     this->currState[1] = c6;
@@ -69,8 +71,8 @@ void Model_QuadrupoleMC::createInitialState() {
 void Model_QuadrupoleMC::InitializeIndexMap(){
     IndexMap.set_size(IndexR,IndexR);
     for (int i = 0; i < np; i++){
-        DiscretizedR[i][0] = ceil(r[i*3])+IndexR/2+1;
-        DiscretizedR[i][1] = ceil(r[i*3+1])+IndexR/2+1;
+        DiscretizedR[i][0] = ceil(r[i*3])+IndexR/2;
+        DiscretizedR[i][1] = ceil(r[i*3+1])+IndexR/2;
         IndexMap(DiscretizedR[i][0],DiscretizedR[i][1]).push_back(i);
     }  
 }
@@ -88,9 +90,9 @@ void Model_QuadrupoleMC::outputTrajectory(std::ostream& os) {
 
     for (int i = 0; i < np; i++) {
         os << i << "\t";
-        os << r[3 * i]/a << "\t";
-        os << r[3 * i + 1]/a << "\t";
-        os << r[3 * i + 2]/a<< "\t";
+        os << r[3 * i] << "\t";
+        os << r[3 * i + 1] << "\t";
+        os << r[3 * i + 2]<< "\t";
         os << std::endl;
     }
 }
@@ -163,14 +165,14 @@ void Model_QuadrupoleMC::MonteCarlo(){
         newr[1] = r[i*3+1] + Drifty + RandDrifty*sqrt(DiffTrans*2.0*dt);
         newr[2] = r[3*i+2] + RandRot*sqrt(DiffRot*2.0*dt);
 //新位置对应区域
-        DiscretizedRNew[0] = ceil(newr[0]);
-        DiscretizedRNew[1] = ceil(newr[1]);
+        DiscretizedRNew[0] = ceil(newr[0])+IndexR/2;
+        DiscretizedRNew[1] = ceil(newr[1])+IndexR/2;
 //检查周围particles的重叠
         for (int ii = -1; ii < 2; ii++){
             for (int jj = -1; jj < 2; jj++){
                 for (int kk = 0; kk < IndexMap(DiscretizedRNew[0]+ii,DiscretizedRNew[1]+jj).size();kk++){
                     Index = IndexMap(DiscretizedRNew[0]+ii,DiscretizedRNew[1]+jj).at(kk);
-                    OverLap += this->CheckOverlap(i,Index);
+                    if (Index != i){OverLap += this->CheckOverlap(i,Index);}
                 }
             }
         }
@@ -179,8 +181,8 @@ void Model_QuadrupoleMC::MonteCarlo(){
             r[i*3] = newr[0];
             r[i*3+1] = newr[1];
             r[i*3+2] = newr[2];
-//更新IndexMap            
-            IndexMap(DiscretizedRNew[0],DiscretizedRNew[1]).push_back(IndexMap(DiscretizedR[i][0],DiscretizedR[i][1]).at(1));
+//更新IndexMap
+            IndexMap(DiscretizedRNew[0],DiscretizedRNew[1]).push_back(IndexMap(DiscretizedR[i][0],DiscretizedR[i][1]).at(0));
             IndexMap(DiscretizedR[i][0],DiscretizedR[i][1]).erase(IndexMap(DiscretizedR[i][0],DiscretizedR[i][1]).begin());
 //更新partition
             DiscretizedR[i][0] = DiscretizedRNew[0];
@@ -199,20 +201,18 @@ int Model_QuadrupoleMC::CheckOverlap(int i, int j){
     double DiffEdge1, DiffEdge2, Dist, Det, Det1, Det2, Frac1, Frac2;
     for (int ii = 0; ii < polygon; ii++){
         for (int jj = 0; jj < polygon; jj++){
-            DiffEdge1 = Edge.at(j*2*polygon+jj) - Edge.at(i*2*polygon+ii);
-            DiffEdge2 = Edge.at(j*2*polygon+jj+1) - Edge.at(i*2*polygon+ii+1);
-            Dist = sqrt(DiffEdge1*DiffEdge1 + DiffEdge2*DiffEdge2);
-            if (Dist < 2*EdgeLength){
+            DiffEdge1 = Edge.at(j*2*polygon+jj*2) - Edge.at(i*2*polygon+ii*2);
+            DiffEdge2 = Edge.at(j*2*polygon+jj*2+1) - Edge.at(i*2*polygon+ii*2+1);
+            Dist = DiffEdge1*DiffEdge1 + DiffEdge2*DiffEdge2;
+            if (Dist < 4*EdgeLength*EdgeLength){
                 Det = -cos(r[i*3+2]+ii*Angle*pi)*sin(r[j*3+2]+jj*Angle*pi)
                         + cos(r[j*3+2]+jj*Angle*pi)*sin(r[i*3+2]+ii*Angle*pi);
                 if (Det != 0.0){
-                    Det1 = -DiffEdge1*sin(r[j*3+2]+jj*Angle*pi)
-                            + DiffEdge2*cos(r[j*3+2]+jj*Angle*pi);
-                    Det2 = DiffEdge2*cos(r[i*3+2]+ii*Angle*pi)
-                            -DiffEdge1*sin(r[i*3+2]+ii*Angle*pi); 
-                    Frac1 = Det1/Det;
-                    Frac2 = Det2/Det;
-                    if (abs(Frac1) <= EdgeLength && abs(Frac2) <= EdgeLength){
+                    Det1 = -DiffEdge1*sin(r[j*3+2]+jj*Angle*pi) + DiffEdge2*cos(r[j*3+2]+jj*Angle*pi);
+                    Det2 = DiffEdge2*cos(r[i*3+2]+ii*Angle*pi) - DiffEdge1*sin(r[i*3+2]+ii*Angle*pi); 
+                    Frac1 = (Det1/Det)*(Det1/Det);
+                    Frac2 = (Det2/Det)*(Det2/Det);
+                    if (Frac1 <= (EdgeLength*EdgeLength) && Frac2 <= (EdgeLength*EdgeLength)){
                         return 10;
                     }
                 }

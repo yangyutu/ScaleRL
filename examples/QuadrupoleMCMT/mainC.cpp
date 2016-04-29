@@ -34,11 +34,10 @@ int main(int argc, char* argv[]) {
 void Quench(std::string filename, int polygon){
     std::shared_ptr<BaseModel> model(new Model_QuadrupoleMC(filename,1,polygon));
     int iter;
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 1; i++) {
         model->createInitialState();
-        std::cout << i << std::endl;
         iter = 0;
-       while (iter < 300) {
+       while (iter < 10) {
 //        while (iter < 300 && !model->terminate()) {
             model->run(3);
             iter++;

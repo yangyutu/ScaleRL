@@ -27,7 +27,7 @@
         <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
       <flagsDictionary>
-        <element flagsID="0" commonFlags="-std=c++0x -O3 -march=native"/>
+        <element flagsID="0" commonFlags="-std=c++0x"/>
       </flagsDictionary>
       <codeAssistance>
       </codeAssistance>
@@ -36,7 +36,7 @@
           <buildCommandWorkingDir>.</buildCommandWorkingDir>
           <buildCommand>${MAKE} -f Makefile</buildCommand>
           <cleanCommand>${MAKE} -f Makefile clean</cleanCommand>
-          <executablePath></executablePath>
+          <executablePath>test</executablePath>
           <ccTool>
             <incDir>
               <pElem>../../../../Downloads/armadillo-6.500.5/include</pElem>
@@ -47,7 +47,7 @@
             </incDir>
             <preprocessorList>
               <Elem>ARMA_DONT_USE_WRAAPER</Elem>
-              <Elem>ARMA_NO_DEBUG</Elem>
+              <Elem>DEBUG</Elem>
               <Elem>__LINUX</Elem>
             </preprocessorList>
           </ccTool>
