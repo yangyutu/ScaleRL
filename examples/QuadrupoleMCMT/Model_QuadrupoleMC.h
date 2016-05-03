@@ -7,6 +7,7 @@
 #include "Model_QuadrupoleBase.h"
 #include <math.h>
 #include <armadillo>
+#include <stdlib.h>
 
 namespace ReinforcementLearning {  
 class Model_QuadrupoleMC: public Model_QuadrupoleBase{
@@ -23,13 +24,15 @@ protected:
     static const int np3 = 300;
     static const int IndexR = 60;
     const double pi = 3.1416;
+    const int OverLapCheck = 0;
     std::vector<double> RCheck, Edge;
     arma::field<std::vector<int> > IndexMap;
     int R, n_rows, n_cols, polygon, a;
     double dx1, dx2;
     double Angle, EdgeLength;
     int DiscretizedR[np][2];
-    int opt, nstep;
+    int opt;
+    double nstep;
     int trajOutputInterval;
     int timeCounter,fileCounter;
     bool trajOutputFlag;

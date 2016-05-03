@@ -73,10 +73,20 @@ void Model_QuadrupoleMC::createInitialState() {
 void Model_QuadrupoleMC::InitializeIndexMap(){
     IndexMap.set_size(IndexR,IndexR);
     for (int i = 0; i < np; i++){
-        DiscretizedR[i][0] = ceil(r[i*3])+IndexR/2;
-        DiscretizedR[i][1] = ceil(r[i*3+1])+IndexR/2;
+        DiscretizedR[i][0] = ceil(r[i*3+0]/(60/IndexR)) + IndexR/2;
+        DiscretizedR[i][1] = ceil(r[i*3+1]/(60/IndexR)) + IndexR/2;
         IndexMap(DiscretizedR[i][0],DiscretizedR[i][1]).push_back(i);
-    }  
+    }
+//    
+//    for (int aaa =0; aaa < IndexR; aaa++){
+//        for (int bbb = 0; bbb < IndexR; bbb++){
+//            std::cout << aaa <<"," << bbb << " = ";
+//            for (int tt = 0; tt < IndexMap(aaa,bbb).size(); tt++){
+//                 std::cout << IndexMap(aaa,bbb).at(tt) << " ";
+//            }
+//            std::cout << "\n";
+//        }
+//    }    
 }
 
 void Model_QuadrupoleMC::InitializeEdge(){
@@ -179,63 +189,61 @@ void Model_QuadrupoleMC::MonteCarlo(){
  * overlapping, these two data are directly replaced; other data
  * including zone information and record of zone particles are 
  * kept unchanged*/
-// Record the new location of particle i as TempR
+// Record the old location of particle i as TempR
         TempR[0] = r[i*3+0];
         TempR[1] = r[i*3+1];
         TempR[2] = r[3*i+2];
-// Update this new location into location matrix
+// Update the new location into location matrix r
         r[i*3+0] = r[i*3+0] + Driftx + RandDriftx*sqrt(DiffTrans*2.0*dt);
         r[i*3+1] = r[i*3+1] + Drifty + RandDrifty*sqrt(DiffTrans*2.0*dt);
-        r[3*i+2] = r[3*i+2] + RandRot*sqrt(DiffRot*2.0*dt);
-// Record the new edge as TempEdge
+        r[i*3+2] = r[i*3+2] + RandRot*sqrt(DiffRot*2.0*dt);
+
+// Record the old edge as TempEdge
         for (int kk = 0; kk < polygon; kk++){
-            TempEdge.push_back(Edge.at(i*2*polygon+kk+0));
-            TempEdge.push_back(Edge.at(i*2*polygon+kk+1));                
+            TempEdge.push_back(Edge.at(i*2*polygon+kk*2+0));
+            TempEdge.push_back(Edge.at(i*2*polygon+kk*2+1));                
         }
 // Update the new edge into edge matrix
         for (int kk = 0; kk < polygon; kk++){
-            Edge.at(i*2*polygon+kk) = TempR[0]+cos(TempR[2]-0.5*pi+(kk)*Angle*pi);
-            Edge.at(i*2*polygon+kk+1) = TempR[1]+sin(TempR[2]-0.5*pi+(kk)*Angle*pi);                
+            Edge.at(i*2*polygon+kk*2+0) = r[i*3+0]+cos(r[i*3+2]-0.5*pi+(kk)*Angle*pi);
+            Edge.at(i*2*polygon+kk*2+1) = r[i*3+1]+sin(r[i*3+2]-0.5*pi+(kk)*Angle*pi);                
         }        
-// Record zone info into temp DiscretizedRNew
-        DiscretizedRNew[0] = ceil(TempR[0])+IndexR/2;
-        DiscretizedRNew[1] = ceil(TempR[1])+IndexR/2;
-        
+// Record new zone info into temp DiscretizedRNew
+        DiscretizedRNew[0] = ceil(r[i*3+0]/(60/IndexR)) + IndexR/2;
+        DiscretizedRNew[1] = ceil(r[i*3+1]/(60/IndexR)) + IndexR/2;
 /* Test overlapping of particles that are in the 8 zones around
  * the location of new particle i location */
-        int OverLap = 0;
+        int OverLapTot = -10;
         for (int ii = -1; ii < 2; ii++){
             for (int jj = -1; jj < 2; jj++){
                 for (int kk = 0; kk < IndexMap(DiscretizedRNew[0]+ii,DiscretizedRNew[1]+jj).size();kk++){
                     Index = IndexMap(DiscretizedRNew[0]+ii,DiscretizedRNew[1]+jj).at(kk);
                     if (Index != i){
-                        OverLap = this->CheckOverlap(i,Index);
+                        if (OverLapCheck < this->CheckOverlap(i,Index)) {
+                            OverLapTot = this->CheckOverlap(i,Index);
+                            // CheckOVerlap = 10 if overlap and -10 if not
+                            goto Endloop;
+                        }
                     }                    
                 }
             }
         }
-//        for (int aa = 0; aa < np; aa++){
-//            if (aa != i){
-//                OverLap = this->CheckOverlap(i,aa);
-//            }
-//        }
-/* If no overlap detected, this movement is allowed;
- * update IndexMap and DiscretizedR */
-        if (OverLap == 0){
+// If no overlap, this movement is allowed; update IndexMap and DiscretizedR 
+Endloop:
+        if (OverLapTot < 0){
             IndexMap(DiscretizedRNew[0],DiscretizedRNew[1]).push_back(IndexMap(DiscretizedR[i][0],DiscretizedR[i][1]).at(0));
             IndexMap(DiscretizedR[i][0],DiscretizedR[i][1]).erase(IndexMap(DiscretizedR[i][0],DiscretizedR[i][1]).begin());
             DiscretizedR[i][0] = DiscretizedRNew[0];
             DiscretizedR[i][1] = DiscretizedRNew[1];
         }
-/* If overlap detected, this movement is not allowed;
- * restore r matrix and Edge matrix */
+// If overlap, this movement is not allowed; restore r matrix and Edge matrix
         else{
             r[i*3+0] = TempR[0];
             r[i*3+1] = TempR[1];
             r[i*3+2] = TempR[2];
             for (int kk = 0; kk < polygon; kk++){
-                Edge.at(i*2*polygon+kk+0) = TempEdge.at(kk*2+0);
-                Edge.at(i*2*polygon+kk+1) = TempEdge.at(kk*2+1);          
+                Edge.at(i*2*polygon+kk*2+0) = TempEdge.at(kk*2+0);
+                Edge.at(i*2*polygon+kk*2+1) = TempEdge.at(kk*2+1);          
             }
         }
     }
@@ -248,27 +256,29 @@ int Model_QuadrupoleMC::CheckOverlap(int i, int j){
     double DiffEdge1, DiffEdge2, Dist, Det, Det1, Det2, Frac1, Frac2;
     for (int ii = 0; ii < polygon; ii++){
         for (int jj = 0; jj < polygon; jj++){
-            DiffEdge1 = Edge.at(j*2*polygon+jj*2) - Edge.at(i*2*polygon+ii*2);
+            DiffEdge1 = Edge.at(j*2*polygon+jj*2+0) - Edge.at(i*2*polygon+ii*2+0);
             DiffEdge2 = Edge.at(j*2*polygon+jj*2+1) - Edge.at(i*2*polygon+ii*2+1);
-            Dist = DiffEdge1*DiffEdge1 + DiffEdge2*DiffEdge2;
+            Dist = sqrt(DiffEdge1*DiffEdge1 + DiffEdge2*DiffEdge2);
 /* First check if the distance between particles are too close; if so no other criteria
- * are needed; otherwise edges needed to be checked */         
-            if (Dist < 4*EdgeLength*EdgeLength){
-                Det = -cos(r[i*3+2]+ii*Angle*pi)*sin(r[j*3+2]+jj*Angle*pi)
-                        + cos(r[j*3+2]+jj*Angle*pi)*sin(r[i*3+2]+ii*Angle*pi);
-                if (Det != 0.0){
-                    Det1 = -DiffEdge1*sin(r[j*3+2]+jj*Angle*pi) + DiffEdge2*cos(r[j*3+2]+jj*Angle*pi);
-                    Det2 = DiffEdge2*cos(r[i*3+2]+ii*Angle*pi) - DiffEdge1*sin(r[i*3+2]+ii*Angle*pi); 
-                    Frac1 = (Det1/Det)*(Det1/Det);
-                    Frac2 = (Det2/Det)*(Det2/Det);
-                    if (Frac1 <= (EdgeLength*EdgeLength) && Frac2 <= (EdgeLength*EdgeLength)){
-                        return 10;
-                    }
-                }
+ * are needed; otherwise edges needed to be checked */
+            Dist = sqrt((r[i*3+0]-r[j*3+0])*(r[i*3+0]-r[j*3+0]) +(r[i*3+1]-r[j*3+1])*(r[i*3+1]-r[j*3+1]));
+            if (Dist < 2*EdgeLength){
+                return 10;
+//                Det = -cos(r[i*3+2]+ii*Angle*pi)*sin(r[j*3+2]+jj*Angle*pi)
+//                        + cos(r[j*3+2]+jj*Angle*pi)*sin(r[i*3+2]+ii*Angle*pi);
+//                if (Det != 0.0){
+//                    Det1 = -DiffEdge1*sin(r[j*3+2]+jj*Angle*pi) + DiffEdge2*cos(r[j*3+2]+jj*Angle*pi);
+//                    Det2 = DiffEdge2*cos(r[i*3+2]+ii*Angle*pi) - DiffEdge1*sin(r[i*3+2]+ii*Angle*pi); 
+//                    Frac1 = fabs(Det1/Det);
+//                    Frac2 = fabs(Det2/Det);
+//                    if (Frac1 <= EdgeLength && Frac2 <= EdgeLength){
+//                        return 10;
+//                    }
+//                }
             }
         }
     }
-    return 0;
+    return -10;
 }
 
 void Model_QuadrupoleMC::calOp() {
