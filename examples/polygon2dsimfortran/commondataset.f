@@ -4,8 +4,8 @@
       integer, parameter :: nmax=300,nmax2=50
       double precision phi(nmax), r_cube(2,nmax), phinew(nmax),
      +   edge(2,6,nmax),edgenew(2,6,nmax),r_cubenew(2,nmax)
-      double precision a, polygon, boxlen,angle,edgelength
-      integer np,np3
+      double precision a, boxlen,angle,edgelength
+      integer np,np3, polygon
       integer nmaxpart,partlist(nmax2,nmax2,nmax2),
      + partindex_x,partindex_y,partlimit_x,partlimit_y,
      + partcount(nmax2,nmax2),partnmax_x,partnmax_y, 

@@ -2,10 +2,13 @@
 <configurationDescriptor version="97">
   <logicalFolder name="root" displayName="root" projectFiles="true" kind="ROOT">
     <df root="." name="0">
+      <in>TrajAna.m</in>
       <in>calorder.f</in>
       <in>commondata.mod</in>
       <in>commondataset.f</in>
       <in>main.f</in>
+      <in>rainbowcubes.m</in>
+      <in>rainbowpolygons.m</in>
       <in>ranf.f</in>
       <in>testoverlap.f</in>
     </df>

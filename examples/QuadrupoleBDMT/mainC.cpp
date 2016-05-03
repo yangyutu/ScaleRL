@@ -24,7 +24,7 @@ void testQLearningMT(char* filename2, int t);
 
 
 int main(int argc, char* argv[]) {
-//    testCppModel("traj/");
+    testCppModel("traj/");
 //    testCppModelMT(boost::lexical_cast<int>(argv[1]));
 //    testQLearning(argv[1]);
     if ( argc == 3) {
@@ -42,11 +42,11 @@ void testCppModel(std::string filename){
     
     int iter;
     
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 2; i++) {
         model->createInitialState();
         std::cout << i << std::endl;
         iter = 0;
-       while (iter < 300) {
+       while (iter < 100) {
 //        while (iter < 300 && !model->terminate()) {
             model->run(3);
             iter++;

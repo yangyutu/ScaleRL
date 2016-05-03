@@ -7,7 +7,7 @@ Model_QuadrupoleBD::Model_QuadrupoleBD(std::string filetag0,int R) {
     filetag = filetag0;
     //	we have three low dimensional states psi6, c6, rg
     // nstep 10000 correspond to 1s, every run will run 1s
-    nstep = 10000;
+    nstep = 100000000;
     stateDim = 3;
     currState.resize(stateDim);
     prevState.resize(stateDim);
@@ -38,7 +38,7 @@ Model_QuadrupoleBD::Model_QuadrupoleBD(std::string filetag0) {
     filetag = filetag0;
     //	we have three low dimensional states psi6, c6, rg
     // nstep 10000 correspond to 1s, every run will run 1s
-    nstep = 10000;
+    nstep = 100000000;
     stateDim = 3;
     currState.resize(stateDim);
     prevState.resize(stateDim);
@@ -83,8 +83,8 @@ void Model_QuadrupoleBD::run(int action) { //每次run 1s的traj
 void Model_QuadrupoleBD::createInitialState() {
     std::stringstream FileStr;
     FileStr << this->fileCounter;
-    this->readxyz("./StartMeshgridFolder/startmeshgrid" + FileStr.str() + ".txt");
-//    this->readxyz("./StartMeshgridFolder/startmeshgrid1.txt");
+//    this->readxyz("./StartMeshgridFolder/startmeshgrid" + FileStr.str() + ".txt");
+    this->readxyz("./StartMeshgridFolder/startmeshgrid1.txt");
     this->readDiffusivity("2dtabledsslam9.txt");
     std::stringstream ss;
     std::cout << "model initialize at round " << fileCounter << std::endl;
@@ -187,12 +187,12 @@ void Model_QuadrupoleBD::readDiffusivity(const std::string filename) {
 void Model_QuadrupoleBD::runHelper(int nstep, int controlOpt) {
 
     tempr = 20.0;
-    double dt = 0.1;
+    double dt = 1000.0/nstep;
     fac1 = 5.9582e7;
     fac2 = 40.5622;
     rcut = 5.0 * a;
     re = 5.0 * a;
-    kappa = 1435.0/10;
+    kappa = 1435.0/1;
     pfpp = 2.2975 * a;
     fcm = -0.4667;
     DG = 71.428 * a;

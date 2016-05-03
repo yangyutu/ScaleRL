@@ -19,17 +19,17 @@ public:
     virtual double getRewards();
     virtual bool terminate();
 protected:
-    static const int np = 300;
-    static const int np3 = 900;
+    static const int np = 100;
+    static const int np3 = 300;
     static const int IndexR = 60;
     const double pi = 3.1416;
     std::vector<double> RCheck, Edge;
     arma::field<std::vector<int> > IndexMap;
-    int R, n_rows, n_cols, polygon, a, OverLap;
+    int R, n_rows, n_cols, polygon, a;
     double dx1, dx2;
     double Angle, EdgeLength;
-    int nxyz[np][3],DiscretizedR[np][2];
-    int opt, nstep, Index;
+    int DiscretizedR[np][2];
+    int opt, nstep;
     int trajOutputInterval;
     int timeCounter,fileCounter;
     bool trajOutputFlag;
