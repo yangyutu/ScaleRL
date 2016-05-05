@@ -28,7 +28,6 @@
       </toolsSet>
       <flagsDictionary>
         <element flagsID="0" commonFlags="-std=c++0x"/>
-        <element flagsID="1" commonFlags="-std=c++0x -O3 -march=native"/>
       </flagsDictionary>
       <codeAssistance>
       </codeAssistance>
@@ -48,6 +47,7 @@
             </incDir>
             <preprocessorList>
               <Elem>ARMA_DONT_USE_WRAAPER</Elem>
+              <Elem>DEBUG</Elem>
               <Elem>__LINUX</Elem>
             </preprocessorList>
           </ccTool>
@@ -58,24 +58,15 @@
         </preBuild>
       </makefileType>
       <item path="Model_QuadrupoleBD.cpp" ex="false" tool="1" flavor2="8">
-        <ccTool flags="1">
-          <preprocessorList>
-            <Elem>ARMA_NO_DEBUG</Elem>
-          </preprocessorList>
+        <ccTool flags="0">
         </ccTool>
       </item>
       <item path="RLSolver_2DTableMT.cpp" ex="false" tool="1" flavor2="8">
-        <ccTool flags="1">
-          <preprocessorList>
-            <Elem>ARMA_NO_DEBUG</Elem>
-          </preprocessorList>
+        <ccTool flags="0">
         </ccTool>
       </item>
       <item path="mainC.cpp" ex="false" tool="1" flavor2="8">
         <ccTool flags="0">
-          <preprocessorList>
-            <Elem>DEBUG</Elem>
-          </preprocessorList>
         </ccTool>
       </item>
     </conf>

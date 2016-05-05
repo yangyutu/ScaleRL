@@ -1,11 +1,11 @@
 np
-300
-ploygon
-3
-nstep
-100000
-iprint
 100
+ploygon
+4
+nstep (100000)
+200000
+iprint
+10000
 lambda
 1
 boxlen
@@ -15,13 +15,13 @@ idummy
 rmin
 2.2
 dt ms
-0.01
+0.1
 D0 (ms^-1)
 6.362e-5
 Dr (ms^-1)
 4.772e-5
 ncycle
-2
+1
 configfile
 squarefluid.txt
 

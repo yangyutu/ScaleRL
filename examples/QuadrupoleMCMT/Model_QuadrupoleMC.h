@@ -23,13 +23,13 @@ protected:
     static const int np = 100;
     static const int np3 = 300;
     static const int IndexR = 60;
-    const double pi = 3.1416;
+    const double pi = 3.1415925025939941;
     const int OverLapCheck = 0;
     std::vector<double> RCheck, Edge;
     arma::field<std::vector<int> > IndexMap;
-    int R, n_rows, n_cols, polygon, a;
+    int R, n_rows, n_cols, polygon;
     double dx1, dx2;
-    double Angle, EdgeLength;
+    double Angle, EdgeLength, a;
     int DiscretizedR[np][2];
     int opt;
     double nstep;
@@ -38,6 +38,7 @@ protected:
     bool trajOutputFlag;
     std::ofstream trajOs, opOs;
     std::string filetag;
+    std::ofstream file;
     
     double r[np3], psi6, c6, rg, lambda, rmin, dt;
     double DiffTrans, DiffRot;

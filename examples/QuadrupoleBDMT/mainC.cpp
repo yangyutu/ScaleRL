@@ -42,14 +42,16 @@ void testCppModel(std::string filename){
     
     int iter;
     
-    for (int i = 0; i < 2; i++) {
+    for (int i = 0; i < 1; i++) {
         model->createInitialState();
         std::cout << i << std::endl;
         iter = 0;
-       while (iter < 100) {
+        std::cout << "t = " << iter << std::endl;
+       while (iter < 20) {
 //        while (iter < 300 && !model->terminate()) {
             model->run(3);
             iter++;
+            std::cout << "t = " << iter << std::endl;
         }
     }    
 }

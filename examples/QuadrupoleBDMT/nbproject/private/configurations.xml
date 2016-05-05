@@ -5,13 +5,13 @@
       <df name="StartMeshgridFolder">
       </df>
       <df name="traj">
+        <in>trajana.m</in>
       </df>
       <in>Model_QuadrupoleBD.cpp</in>
       <in>Model_QuadrupoleBD.h</in>
       <in>RLSolver_2DTableMT.cpp</in>
       <in>RLSolver_2DTableMT.h</in>
       <in>mainC.cpp</in>
-      <in>plottraj.m</in>
     </df>
   </logicalFolder>
   <projectmakefile>Makefile</projectmakefile>
@@ -43,7 +43,7 @@
         </gdb_signals>
         <gdb_options>
           <DebugOptions>
-            <option name="debug_command" value="./test qsolver.prototxt 2"/>
+            <option name="debug_command" value="./test"/>
           </DebugOptions>
         </gdb_options>
         <gdb_buildfirst gdb_buildfirst_overriden="false" gdb_buildfirst_old="false"/>
@@ -54,8 +54,9 @@
       <runprofile version="9">
         <runcommandpicklist>
           <runcommandpicklistitem>"${OUTPUT_PATH}"</runcommandpicklistitem>
+          <runcommandpicklistitem>./test</runcommandpicklistitem>
         </runcommandpicklist>
-        <runcommand>"${OUTPUT_PATH}"</runcommand>
+        <runcommand>./test</runcommand>
         <rundir>.</rundir>
         <buildfirst>false</buildfirst>
         <terminal-type>0</terminal-type>

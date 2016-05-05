@@ -7,7 +7,7 @@ Model_QuadrupoleBD::Model_QuadrupoleBD(std::string filetag0,int R) {
     filetag = filetag0;
     //	we have three low dimensional states psi6, c6, rg
     // nstep 10000 correspond to 1s, every run will run 1s
-    nstep = 100000000;
+    nstep = 100000;
     stateDim = 3;
     currState.resize(stateDim);
     prevState.resize(stateDim);
@@ -38,7 +38,7 @@ Model_QuadrupoleBD::Model_QuadrupoleBD(std::string filetag0) {
     filetag = filetag0;
     //	we have three low dimensional states psi6, c6, rg
     // nstep 10000 correspond to 1s, every run will run 1s
-    nstep = 100000000;
+    nstep = 100000;
     stateDim = 3;
     currState.resize(stateDim);
     prevState.resize(stateDim);
@@ -192,7 +192,7 @@ void Model_QuadrupoleBD::runHelper(int nstep, int controlOpt) {
     fac2 = 40.5622;
     rcut = 5.0 * a;
     re = 5.0 * a;
-    kappa = 1435.0/1;
+    kappa = 1435.0/10;
     pfpp = 2.2975 * a;
     fcm = -0.4667;
     DG = 71.428 * a;
@@ -248,7 +248,7 @@ void Model_QuadrupoleBD::forces(int sstep) {
     double RX, RY, EMAGI, EMAGJ, dE2x, dE2y, Fdepx, Fdepy;
     double STEP = 1e-3;
     double rij[3];
-    double Fpp, Fhw, felx, fely, felz, Exi, Exj, Eyi,Eyj,Ezi,Ezj;
+    double Fpp, Fhw, felx, fely, felz, Exi, Exj, Eyi,Eyj,Ezi,Ezj, FOS;
     double felxnew,felxnew2,felynew,felynew2;
     Fhw = 0.417;
     double Fo = 1e18*0.75*lambda*kb*(273+tempr)/a;
@@ -301,7 +301,8 @@ void Model_QuadrupoleBD::forces(int sstep) {
                 felynew2=Fo*pow(2*a/rijsep,4)*(F1*rij[1]/rijsep +
                         Eyi*F3 + Eyj*F2 - 5*F2*F3*rij[1]/rijsep-
                         rijsep*16*r[nxyz[i][1]]/pow(DG,2)/3.0+F2*4*(rij[1])/DG);
-                       
+                FOS = -4.0/3.0* Os_pressure*M_PI*(-3.0/4.0*pow(1.2*a,2)+3.0*(rijsep/a)*(rijsep/a)/16.0*a*a);
+//                FOS = 0;
             } else {
 
                 felx = 0.0;
@@ -311,15 +312,15 @@ void Model_QuadrupoleBD::forces(int sstep) {
 		felynew=0.0;
 		felxnew2=0.0;
 		felynew2=0.0;
+                FOS = 0.0;
             
             }
             
-            F[nxyz[i][0]] = F[nxyz[i][0]] - felxnew - Fpp*rij[0]/rijsep;
-            F[nxyz[i][1]] = F[nxyz[i][1]] - felynew - Fpp*rij[1]/rijsep;
+            F[nxyz[i][0]] = F[nxyz[i][0]] - felxnew - (Fpp-FOS)*rij[0]/rijsep;
+            F[nxyz[i][1]] = F[nxyz[i][1]] - felynew - (Fpp-FOS)*rij[1]/rijsep;
             
-            F[nxyz[j][0]] = F[nxyz[j][0]] + felxnew2 + Fpp*rij[0]/rijsep;
-            F[nxyz[j][1]] = F[nxyz[j][1]] + felynew2 + Fpp*rij[1]/rijsep;
-            
+            F[nxyz[j][0]] = F[nxyz[j][0]] + felxnew2 + (Fpp-FOS)*rij[0]/rijsep;
+            F[nxyz[j][1]] = F[nxyz[j][1]] + felynew2 + (Fpp-FOS)*rij[1]/rijsep;
         }
     }
 // 电场受力       

@@ -4,7 +4,7 @@
       
       implicit none
       
-      integer overlap,idummy,ncycle, cycleindex
+      integer overlap,idummy,ncycle, cycleindex,ppp
       double precision drmax, rotmax, ranf, dist, move,lambda,dum,
      + rg, psi, rmin, psi_loc(nmax),drift, randdisp,
      + D0, Dr, dt 
@@ -67,7 +67,7 @@
             open(20,file=configfile)
       
             do i=1,np
-                read(20,*) dum,r_cube(1,i),r_cube(2,i),dum,phi(i)
+                read(20,*) dum,r_cube(1,i),r_cube(2,i),phi(i)
                 r_cube(1,i)=r_cube(1,i)+0.01
                 r_cube(2,i)=r_cube(2,i)+0.02
             end do
@@ -76,7 +76,7 @@ c         generate edge center
       
             angle=2.0/polygon
             edgelength=a*tan(pi/polygon)
-      
+
             do i=1,np
 
                 do k=1,polygon
@@ -87,7 +87,6 @@ c         generate edge center
             end do
             edgenew=edge
             phinew=phi
-      
 c     first test overlapping of initial configurations
             overlap=0
             do p1=1,np-1
@@ -99,7 +98,7 @@ c     first test overlapping of initial configurations
                 end do
             end do
       
-      
+    
 c         first parition the space
       
 
@@ -139,34 +138,24 @@ c         first parition the space
         close(99)
       
       
-          
+!        open(999,file='traj.dat')
       do step=1,nstep  
+
           
           
-          
-          do i=1,np
-           if(step .eq. 107 .and. i .eq. 58) then
-              write(*,*)
-               open(99,file='text.txt')
-        
-        do ii=1,partnmax_x
-        do jj=1,partnmax_y
-        do kk=1,partcount(ii,jj)
-        write(99,*) ii,jj, partlist(kk,ii,jj),partcount(ii,jj),
-     + partrecord(1,partlist(kk,ii,jj)),partrecord(2,partlist(kk,ii,jj))
-        end do
-        end do
-        end do
-        close(99)
-          end if            
+          do i=1,np           
               dist=sqrt(r_cube(1,i)**2+r_cube(2,i)**2)
+!              write(999,*)  i, r_cube(1,i),  r_cube(2,i)
               do j=1,2
                   
       drift=-(r_cube(j,i))*lambda*dt*D0
          randdisp=(ranf(idummy)-0.5)*sqrt(D0*24.0*dt)
           r_cubenew(j,i)=r_cube(j,i)+drift+randdisp
-        
+!          r_cubenew(j,i)=r_cube(j,i)+drift
+          
               end do
+              
+!      phinew(i)=phi(i)
       phinew(i)=phi(i)+(ranf(idummy)-0.5)*sqrt(Dr*24.0*dt)
       
          do k=1,polygon
@@ -267,5 +256,5 @@ c         now i update the partition list
       
          
       end do
-      
+
       end

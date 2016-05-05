@@ -37,7 +37,7 @@ void Quench(std::string filename, int polygon){
     for (int i = 0; i < 1; i++) {
         model->createInitialState();
         iter = 0;
-       while (iter < 10) {
+       while (iter < 5) {
 //        while (iter < 300 && !model->terminate()) {
             model->run(3);
 	    std::cout << "t = " << iter << std::endl;
