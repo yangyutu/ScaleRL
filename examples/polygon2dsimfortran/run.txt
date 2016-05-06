@@ -3,7 +3,7 @@ np
 ploygon
 4
 nstep (100000)
-10000
+200000
 iprint
 10000
 lambda

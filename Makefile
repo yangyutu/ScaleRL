@@ -1,5 +1,5 @@
 CPP = g++
-ARMA_INCLUDE=-I/home/aledonbde/Downloads/armadillo-6.600.4/include
+ARMA_INCLUDE=-I/home/aledonbde/Downloads/armadillo-6.500.5/include
 CXXFLAGS = -std=c++0x $(ARMA_INCLUDE) -I./include -I/usr/local/include -I/opt/boost/boost_1_57_0 -D__LINUX -DARMA_DONT_USE_WRAAPER
 DEBUGFLAG=-DDEBUG -g3
 RELEASEFLAG= -O3 -march=native -DARMA_NO_DEBUG

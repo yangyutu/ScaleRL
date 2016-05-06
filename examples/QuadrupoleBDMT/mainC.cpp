@@ -47,7 +47,7 @@ void testCppModel(std::string filename){
         std::cout << i << std::endl;
         iter = 0;
         std::cout << "t = " << iter << std::endl;
-       while (iter < 20) {
+       while (iter < 1000) {
 //        while (iter < 300 && !model->terminate()) {
             model->run(3);
             iter++;

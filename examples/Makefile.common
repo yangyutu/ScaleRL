@@ -2,10 +2,10 @@ CC = gcc
 CXX = g++
 
 HOME=/home/aledonbde/
-ARMA_INCLUDE=-I$(HOME)Downloads/armadillo-6.600.4/include
+ARMA_INCLUDE=-I$(HOME)Downloads/armadillo-6.500.5/include
 RL_INCLUDE=-I../../include
 GTEST_INCLUDE=-I$(HOME)workspace/libs/gtest-1.7.0/include
-BOOST_INCLUDE=-I$(HOME)Downloads/boost_1_60_0
+BOOST_INCLUDE=-I/opt/boost/boost_1_57_0
 PROTO_INCLUDE=-I/usr/local/include
 
 GTEST_PATH=-L$(HOME)workspace/libs/gtest-1.7.0/mybuilds

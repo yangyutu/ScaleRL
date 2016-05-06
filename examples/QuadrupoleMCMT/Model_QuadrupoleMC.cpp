@@ -11,6 +11,7 @@ Model_QuadrupoleMC::Model_QuadrupoleMC(std::string filetag0,int R, int polygon0)
     EdgeLength = tan(pi/polygon);
     rmin = 2.2;
     nstep = 10000;
+    dt = 1000.0/nstep;
     stateDim = 3;
     currState.resize(stateDim);
     prevState.resize(stateDim);
@@ -165,7 +166,6 @@ void Model_QuadrupoleMC::MonteCarlo(){
  * other particles, then the movement is kept; otherwise, this
  * movement is discarded, and this particle is considered to stay
  * still for this 0.1ms*/
-    double dt = 0.1;
     int DiscretizedRNew[2],Index;
     double Driftx, Drifty, RandDriftx, RandDrifty, RandRot, TempR[3];
     std::vector<double> TempEdge;

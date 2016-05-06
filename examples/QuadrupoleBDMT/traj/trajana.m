@@ -11,8 +11,8 @@ for i = 1:size(data,1)/pnum
 %     if i == 1
 %         xx = input('wait');
 %     end
-%     drawnow
-    pause(0.5)
+    drawnow
+%     pause(0.1)
 end
 % range = data(601:900,:);
 % Result = [];

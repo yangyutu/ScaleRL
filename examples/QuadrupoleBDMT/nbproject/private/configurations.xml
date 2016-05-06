@@ -5,6 +5,7 @@
       <df name="StartMeshgridFolder">
       </df>
       <df name="traj">
+        <in>OSP.m</in>
         <in>trajana.m</in>
       </df>
       <in>Model_QuadrupoleBD.cpp</in>

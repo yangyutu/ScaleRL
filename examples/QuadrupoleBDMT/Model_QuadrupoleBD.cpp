@@ -7,11 +7,11 @@ Model_QuadrupoleBD::Model_QuadrupoleBD(std::string filetag0,int R) {
     filetag = filetag0;
     //	we have three low dimensional states psi6, c6, rg
     // nstep 10000 correspond to 1s, every run will run 1s
-    nstep = 100000;
+    nstep = 10000;
     stateDim = 3;
     currState.resize(stateDim);
     prevState.resize(stateDim);
-    dt = 1; //s
+    dt = 1000.0/nstep; //ms
     numActions = 4;
     trajOutputInterval = 1;
     fileCounter = 0;
@@ -38,11 +38,11 @@ Model_QuadrupoleBD::Model_QuadrupoleBD(std::string filetag0) {
     filetag = filetag0;
     //	we have three low dimensional states psi6, c6, rg
     // nstep 10000 correspond to 1s, every run will run 1s
-    nstep = 100000;
+    nstep = 10000;
     stateDim = 3;
     currState.resize(stateDim);
     prevState.resize(stateDim);
-    dt = 1; //s
+    dt = 1000.0/nstep; //s
     numActions = 4;
     trajOutputInterval = 1;
     fileCounter = 0;
@@ -51,6 +51,7 @@ Model_QuadrupoleBD::Model_QuadrupoleBD(std::string filetag0) {
     rgbin = 25;
     rbin = 50;
     a = 1435.0;
+    L = 100;
     kb = 1.380658e-23;
 
     for (int i = 0; i < np; i++) {
@@ -119,7 +120,7 @@ void Model_QuadrupoleBD::outputTrajectory(std::ostream& os) {
 }
 
 void Model_QuadrupoleBD::outputOrderParameter(std::ostream& os) {
-    os << this->timeCounter * dt << "\t";
+    os << this->timeCounter << "\t";
     os << psi6 << "\t";
     os << c6 << "\t";
     os << rg << "\t";
@@ -187,7 +188,6 @@ void Model_QuadrupoleBD::readDiffusivity(const std::string filename) {
 void Model_QuadrupoleBD::runHelper(int nstep, int controlOpt) {
 
     tempr = 20.0;
-    double dt = 1000.0/nstep;
     fac1 = 5.9582e7;
     fac2 = 40.5622;
     rcut = 5.0 * a;
@@ -301,8 +301,8 @@ void Model_QuadrupoleBD::forces(int sstep) {
                 felynew2=Fo*pow(2*a/rijsep,4)*(F1*rij[1]/rijsep +
                         Eyi*F3 + Eyj*F2 - 5*F2*F3*rij[1]/rijsep-
                         rijsep*16*r[nxyz[i][1]]/pow(DG,2)/3.0+F2*4*(rij[1])/DG);
-//                FOS = -4.0/3.0* Os_pressure*M_PI*(-3.0/4.0*pow(1.2*a,2)+3.0*(rijsep/a)*(rijsep/a)/16.0*a*a);
-                FOS = exp(-30/(rijsep/a));
+                FOS = -4.0/3.0* Os_pressure*M_PI*(-0.75*pow((1+L/a)*a,2)+0.1875*rijsep*rijsep);
+//                FOS = exp(-30/(rijsep/a));
 //                FOS = 0;
             } else {
 
@@ -317,11 +317,11 @@ void Model_QuadrupoleBD::forces(int sstep) {
             
             }
             
-            F[nxyz[i][0]] = F[nxyz[i][0]] - felxnew - (Fpp-FOS)*rij[0]/rijsep;
-            F[nxyz[i][1]] = F[nxyz[i][1]] - felynew - (Fpp-FOS)*rij[1]/rijsep;
+            F[nxyz[i][0]] = F[nxyz[i][0]] - felxnew - (Fpp+FOS)*rij[0]/rijsep;
+            F[nxyz[i][1]] = F[nxyz[i][1]] - felynew - (Fpp+FOS)*rij[1]/rijsep;
             
-            F[nxyz[j][0]] = F[nxyz[j][0]] + felxnew2 + (Fpp-FOS)*rij[0]/rijsep;
-            F[nxyz[j][1]] = F[nxyz[j][1]] + felynew2 + (Fpp-FOS)*rij[1]/rijsep;
+            F[nxyz[j][0]] = F[nxyz[j][0]] + felxnew2 + (Fpp+FOS)*rij[0]/rijsep;
+            F[nxyz[j][1]] = F[nxyz[j][1]] + felynew2 + (Fpp+FOS)*rij[1]/rijsep;
         }
     }
 // 电场受力       

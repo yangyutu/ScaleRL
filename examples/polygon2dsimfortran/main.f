@@ -138,24 +138,24 @@ c         first parition the space
         close(99)
       
       
-        open(999,file='traj.dat')
+!        open(999,file='traj.dat')
       do step=1,nstep  
           
           
           do i=1,np
               dist=sqrt(r_cube(1,i)**2+r_cube(2,i)**2)
-              write(999,*)  i, r_cube(1,i),  r_cube(2,i)
+!              write(999,*)  i, r_cube(1,i),  r_cube(2,i)
               do j=1,2
                   
       drift=-(r_cube(j,i))*lambda*dt*D0
          randdisp=(ranf(idummy)-0.5)*sqrt(D0*24.0*dt)
-!          r_cubenew(j,i)=r_cube(j,i)+drift+randdisp
-          r_cubenew(j,i)=r_cube(j,i)+drift
+          r_cubenew(j,i)=r_cube(j,i)+drift+randdisp
+!          r_cubenew(j,i)=r_cube(j,i)+drift
           
               end do
               
-      phinew(i)=phi(i)
-!      phinew(i)=phi(i)+(ranf(idummy)-0.5)*sqrt(Dr*24.0*dt)
+!      phinew(i)=phi(i)
+      phinew(i)=phi(i)+(ranf(idummy)-0.5)*sqrt(Dr*24.0*dt)
       
          do k=1,polygon
       edgenew(1,k,i)=r_cubenew(1,i)+
@@ -255,5 +255,5 @@ c         now i update the partition list
       
          
       end do
-      close(999)
+!      close(999)
       end

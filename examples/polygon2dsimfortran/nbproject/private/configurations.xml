@@ -4,7 +4,6 @@
     <df root="." name="0">
       <in>TrajAna.m</in>
       <in>calorder.f</in>
-      <in>commondata.mod</in>
       <in>commondataset.f</in>
       <in>main.f</in>
       <in>rainbowcubes.m</in>
