@@ -6,12 +6,12 @@ data = load(file);
 pnum = max(data(:,1))+1;
 for i = 1:size(data,1)/pnum
     plot(data((i-1)*pnum+1:i*pnum,2),data((i-1)*pnum+1:i*pnum,3),'ko','markersize',6)
-%     axis([-30 30 -30 30])
+    axis([-30 30 -30 30])
     title(strcat('t = ',num2str(i)))
-    if i == 1
-        xx = input('wait');
-    end
-    drawnow
+%     if i == 1
+%         xx = input('wait');
+%     end
+%     drawnow
     pause(0.5)
 end
 % range = data(601:900,:);

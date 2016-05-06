@@ -27,7 +27,7 @@
         <rebuildPropChanged>false</rebuildPropChanged>
       </toolsSet>
       <flagsDictionary>
-        <element flagsID="0" commonFlags="-std=c++0x"/>
+        <element flagsID="0" commonFlags="-std=c++0x -O3 -march=native"/>
       </flagsDictionary>
       <codeAssistance>
       </codeAssistance>
@@ -39,15 +39,15 @@
           <executablePath>test</executablePath>
           <ccTool>
             <incDir>
-              <pElem>../../../../Downloads/armadillo-6.500.5/include</pElem>
+              <pElem>../../../../Downloads/armadillo-6.600.4/include</pElem>
               <pElem>../../include</pElem>
-              <pElem>/opt/boost/boost_1_57_0</pElem>
+              <pElem>../../../../Downloads/boost_1_60_0</pElem>
               <pElem>/usr/local/include</pElem>
               <pElem>../quadrupoleMT</pElem>
             </incDir>
             <preprocessorList>
               <Elem>ARMA_DONT_USE_WRAAPER</Elem>
-              <Elem>DEBUG</Elem>
+              <Elem>ARMA_NO_DEBUG</Elem>
               <Elem>__LINUX</Elem>
             </preprocessorList>
           </ccTool>

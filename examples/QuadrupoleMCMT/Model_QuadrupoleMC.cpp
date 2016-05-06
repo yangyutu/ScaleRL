@@ -148,7 +148,7 @@ void Model_QuadrupoleMC::runHelper(int nstep, int controlOpt) {
     else if (controlOpt == 1) {lambda = 0.2;}
     else if (controlOpt == 2) {lambda = 0.3;}
     else {lambda = 1;}
-    file.open("Traj.dat");
+//    file.open("Traj.dat");
     for (int step = 0; step < nstep; step++) {
         this->MonteCarlo();
     }
@@ -171,7 +171,7 @@ void Model_QuadrupoleMC::MonteCarlo(){
     std::vector<double> TempEdge;
 // Calculate the movement of each particle (i) in 0.1ms
     for (int i = 0; i < np; i++){
-        file << i+1 << "\t" << r[i*3+0] << "\t" << r[i*3+1] << std::endl;
+//        file << i+1 << "\t" << r[i*3+0] << "\t" << r[i*3+1] << std::endl;
 // The velocity of each particle (translational and rotational)
         Driftx = -r[3*i]*lambda*dt*DiffTrans;
         Drifty = -r[3*i+1]*lambda*dt*DiffTrans;
@@ -188,12 +188,12 @@ void Model_QuadrupoleMC::MonteCarlo(){
         TempR[1] = r[i*3+1];
         TempR[2] = r[3*i+2];
 // Update the new location into location matrix r
-//        r[i*3+0] = r[i*3+0] + Driftx + RandDriftx*sqrt(DiffTrans*2.0*dt);
-//        r[i*3+1] = r[i*3+1] + Drifty + RandDrifty*sqrt(DiffTrans*2.0*dt);
-//        r[i*3+2] = r[i*3+2] + RandRot*sqrt(DiffRot*2.0*dt);
-        r[i*3+0] = r[i*3+0] + Driftx;
-        r[i*3+1] = r[i*3+1] + Drifty;
-        r[i*3+2] = r[i*3+2];
+        r[i*3+0] = r[i*3+0] + Driftx + RandDriftx*sqrt(DiffTrans*2.0*dt);
+        r[i*3+1] = r[i*3+1] + Drifty + RandDrifty*sqrt(DiffTrans*2.0*dt);
+        r[i*3+2] = r[i*3+2] + RandRot*sqrt(DiffRot*2.0*dt);
+//        r[i*3+0] = r[i*3+0] + Driftx;
+//        r[i*3+1] = r[i*3+1] + Drifty;
+//        r[i*3+2] = r[i*3+2];
         
 // Record the old edge as TempEdge
         for (int kk = 0; kk < polygon; kk++){
@@ -211,8 +211,8 @@ void Model_QuadrupoleMC::MonteCarlo(){
 /* Test overlapping of particles that are in the 8 zones around
  * the location of new particle i location */
         int OverLapTot = 0;
-//        for (int ii = -2; ii <= 2; ii++){
-//            for (int jj = -2; jj <= 2; jj++){
+//        for (int ii = -1; ii <= 1; ii++){
+//            for (int jj = -1; jj <= 1; jj++){
 //                for (int kk = 0; kk < IndexMap(DiscretizedRNew[0]+ii,DiscretizedRNew[1]+jj).size();kk++){
 //                    Index = IndexMap(DiscretizedRNew[0]+ii,DiscretizedRNew[1]+jj).at(kk);
 //                    if (Index != i && (this->CheckOverlap(i,Index) > 1)){
@@ -222,7 +222,7 @@ void Model_QuadrupoleMC::MonteCarlo(){
 //            }
 //        }
         for (int ii = 0; ii < np; ii++){
-            if (Index != i && (this->CheckOverlap(i,ii) > 1)){
+            if (ii != i && (this->CheckOverlap(i,ii) > 1)){
                 OverLapTot = 10;
                 break;
             }
@@ -260,7 +260,7 @@ int Model_QuadrupoleMC::CheckOverlap(int i, int j){
             Dist = sqrt(DiffEdge1*DiffEdge1 + DiffEdge2*DiffEdge2);
 /* First check if the distance between particles are too close; if so no other criteria
  * are needed; otherwise edges needed to be checked */
-//            if (Dist < 2*EdgeLength){
+            if (Dist < 2*EdgeLength){
                 Det = -cos(r[i*3+2]+ii*Angle*pi)*sin(r[j*3+2]+jj*Angle*pi)
                         + cos(r[j*3+2]+jj*Angle*pi)*sin(r[i*3+2]+ii*Angle*pi);
                 if (Det != 0.0){
@@ -276,7 +276,7 @@ int Model_QuadrupoleMC::CheckOverlap(int i, int j){
                         return 10;
                     }
                 }
-//            }
+            }
         }
     }
     return 0;

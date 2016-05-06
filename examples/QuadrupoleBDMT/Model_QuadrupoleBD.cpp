@@ -301,7 +301,8 @@ void Model_QuadrupoleBD::forces(int sstep) {
                 felynew2=Fo*pow(2*a/rijsep,4)*(F1*rij[1]/rijsep +
                         Eyi*F3 + Eyj*F2 - 5*F2*F3*rij[1]/rijsep-
                         rijsep*16*r[nxyz[i][1]]/pow(DG,2)/3.0+F2*4*(rij[1])/DG);
-                FOS = -4.0/3.0* Os_pressure*M_PI*(-3.0/4.0*pow(1.2*a,2)+3.0*(rijsep/a)*(rijsep/a)/16.0*a*a);
+//                FOS = -4.0/3.0* Os_pressure*M_PI*(-3.0/4.0*pow(1.2*a,2)+3.0*(rijsep/a)*(rijsep/a)/16.0*a*a);
+                FOS = exp(-30/(rijsep/a));
 //                FOS = 0;
             } else {
 

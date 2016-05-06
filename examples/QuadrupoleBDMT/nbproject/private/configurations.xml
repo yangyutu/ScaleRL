@@ -12,6 +12,7 @@
       <in>RLSolver_2DTableMT.cpp</in>
       <in>RLSolver_2DTableMT.h</in>
       <in>mainC.cpp</in>
+      <in>plottraj.m</in>
     </df>
   </logicalFolder>
   <projectmakefile>Makefile</projectmakefile>

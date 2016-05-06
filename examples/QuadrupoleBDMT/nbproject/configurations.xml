@@ -39,9 +39,9 @@
           <executablePath>test</executablePath>
           <ccTool>
             <incDir>
-              <pElem>../../../../Downloads/armadillo-6.500.5/include</pElem>
+              <pElem>../../../../Downloads/armadillo-6.600.4/include</pElem>
               <pElem>../../include</pElem>
-              <pElem>/opt/boost/boost_1_57_0</pElem>
+              <pElem>../../../../Downloads/boost_1_60_0</pElem>
               <pElem>/usr/local/include</pElem>
               <pElem>../quadrupoleMT</pElem>
             </incDir>

@@ -18,8 +18,8 @@ public:
     virtual double getRewards();
     virtual bool terminate();
 protected:
-    static const int np = 300;
-    static const int np3 = 900;
+    static const int np = 100;
+    static const int np3 = 300;
     static const int rgdssbin = 25;
     static const int distdssbin = 50;
     const double Os_pressure = 5.8e-8;
