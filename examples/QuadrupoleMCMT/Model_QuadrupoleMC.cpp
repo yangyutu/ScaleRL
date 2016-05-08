@@ -5,10 +5,9 @@ using namespace ReinforcementLearning;
 Model_QuadrupoleMC::Model_QuadrupoleMC(std::string filetag0,int R, int polygon0) {
     filetag = filetag0;
     polygon = polygon0;
-    DiffTrans = 0.00006362;
-    DiffRot = 0.00004772;
+    DiffTrans = 6.362e-5;
+    DiffRot = 4.772e-5;
     Angle = 2.0/polygon;
-    EdgeLength = tan(pi/polygon);
     rmin = 2.2;
     nstep = 10000;
     dt = 1000.0/nstep;
@@ -19,6 +18,7 @@ Model_QuadrupoleMC::Model_QuadrupoleMC(std::string filetag0,int R, int polygon0)
     fileCounter = 0;
     rand_normal = std::make_shared<std::normal_distribution<double>>(0.0, 1.0);
     a = sin(0.5*pi-pi/polygon);
+    EdgeLength = a*tan(pi/polygon);
     n_rows = R;
     n_cols = R;
     dx1 = 1.0/R;
@@ -137,7 +137,7 @@ void Model_QuadrupoleMC::readxyz(const std::string filename) {
         linestream >> dum;
         linestream >> r[3 * i];
         linestream >> r[3 * i + 1];
-        linestream >> dum;
+//        linestream >> dum;
         linestream >> r[3 * i + 2];
     }
     is.close();
@@ -149,11 +149,9 @@ void Model_QuadrupoleMC::runHelper(int nstep, int controlOpt) {
     else if (controlOpt == 1) {lambda = 0.2;}
     else if (controlOpt == 2) {lambda = 0.3;}
     else {lambda = 1;}
-//    file.open("Traj.dat");
     for (int step = 0; step < nstep; step++) {
         this->MonteCarlo();
     }
-//    file.close();
     this->calOp();
 }
 
@@ -171,7 +169,6 @@ void Model_QuadrupoleMC::MonteCarlo(){
     std::vector<double> TempEdge;
 // Calculate the movement of each particle (i) in 0.1ms
     for (int i = 0; i < np; i++){
-//        file << i+1 << "\t" << r[i*3+0] << "\t" << r[i*3+1] << std::endl;
 // The velocity of each particle (translational and rotational)
         Driftx = -r[3*i]*lambda*dt*DiffTrans;
         Drifty = -r[3*i+1]*lambda*dt*DiffTrans;
@@ -191,9 +188,6 @@ void Model_QuadrupoleMC::MonteCarlo(){
         r[i*3+0] = r[i*3+0] + Driftx + RandDriftx*sqrt(DiffTrans*2.0*dt);
         r[i*3+1] = r[i*3+1] + Drifty + RandDrifty*sqrt(DiffTrans*2.0*dt);
         r[i*3+2] = r[i*3+2] + RandRot*sqrt(DiffRot*2.0*dt);
-//        r[i*3+0] = r[i*3+0] + Driftx;
-//        r[i*3+1] = r[i*3+1] + Drifty;
-//        r[i*3+2] = r[i*3+2];
         
 // Record the old edge as TempEdge
         for (int kk = 0; kk < polygon; kk++){
@@ -211,20 +205,24 @@ void Model_QuadrupoleMC::MonteCarlo(){
 /* Test overlapping of particles that are in the 8 zones around
  * the location of new particle i location */
         int OverLapTot = 0;
-//        for (int ii = -1; ii <= 1; ii++){
-//            for (int jj = -1; jj <= 1; jj++){
-//                for (int kk = 0; kk < IndexMap(DiscretizedRNew[0]+ii,DiscretizedRNew[1]+jj).size();kk++){
-//                    Index = IndexMap(DiscretizedRNew[0]+ii,DiscretizedRNew[1]+jj).at(kk);
-//                    if (Index != i && (this->CheckOverlap(i,Index) > 1)){
-//                        OverLapTot = 10;
-//                    }                    
-//                }
-//            }
-//        }
-        for (int ii = 0; ii < np; ii++){
-            if (ii != i && (this->CheckOverlap(i,ii) > 1)){
-                OverLapTot = 10;
-                break;
+        for (int ii = -2; ii <= 2; ii++){
+            for (int jj = -2; jj <= 2; jj++){
+                for (int kk = 0; kk < IndexMap(DiscretizedRNew[0]+ii,DiscretizedRNew[1]+jj).size();kk++){
+                    Index = IndexMap(DiscretizedRNew[0]+ii,DiscretizedRNew[1]+jj).at(kk);
+                    double tempdist;
+                    if (Index != i){
+                        tempdist =sqrt((r[Index*3] - r[i*3])*(r[Index*3] - r[i*3]) + 
+                            (r[Index*3+1] - r[i*3+1])*(r[Index*3+1] - r[i*3+1]));    
+                        if (tempdist < 2*a){
+                            OverLapTot = 10;
+                        }
+                        else if (this->CheckOverlap(i,Index) > 1){
+                            OverLapTot = 10;
+                        }
+                    }
+                    
+                    
+                }
             }
         }
 // If no overlap, this movement is allowed; update IndexMap and DiscretizedR 

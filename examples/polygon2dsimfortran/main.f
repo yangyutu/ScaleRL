@@ -125,7 +125,7 @@ c         first parition the space
             partrecord(2,i)=partindex_y
 
             end do
-            open(99,file='text.txt')
+!            open(99,file='text.txt')
         
         do i=1,partnmax_x
             do j=1,partnmax_y
@@ -138,9 +138,11 @@ c         first parition the space
         close(99)
       
       
-!        open(999,file='traj.dat')
+        
       do step=1,nstep  
-          
+          if (step .eq. 6026) then
+!              open(999,file='traj.dat')
+          end if
           
           do i=1,np
               dist=sqrt(r_cube(1,i)**2+r_cube(2,i)**2)
@@ -149,13 +151,13 @@ c         first parition the space
                   
       drift=-(r_cube(j,i))*lambda*dt*D0
          randdisp=(ranf(idummy)-0.5)*sqrt(D0*24.0*dt)
-          r_cubenew(j,i)=r_cube(j,i)+drift+randdisp
-!          r_cubenew(j,i)=r_cube(j,i)+drift
+!          r_cubenew(j,i)=r_cube(j,i)+drift+randdisp
+          r_cubenew(j,i)=r_cube(j,i)+drift
           
               end do
               
-!      phinew(i)=phi(i)
-      phinew(i)=phi(i)+(ranf(idummy)-0.5)*sqrt(Dr*24.0*dt)
+      phinew(i)=phi(i)
+!      phinew(i)=phi(i)+(ranf(idummy)-0.5)*sqrt(Dr*24.0*dt)
       
          do k=1,polygon
       edgenew(1,k,i)=r_cubenew(1,i)+
@@ -176,7 +178,7 @@ c     now find the neighbor of particle i
      +             ,index_y+partrecord(2,i))
           p2=partlist(jj,index_x+partrecord(1,i)
      +     ,index_y+partrecord(2,i))
-             
+
             if(p2 .ne. i) then
                 
        dist=sqrt((r_cubenew(1,i)-r_cube(1,p2))**2.0+
