@@ -4,16 +4,30 @@ close all
 file = 'xyz_0.dat';
 data = load(file);
 pnum = max(data(:,1))+1;
-for i = 1:size(data,1)/pnum
-    plot(data((i-1)*pnum+1:i*pnum,2),data((i-1)*pnum+1:i*pnum,3),'ko','markersize',6)
-    axis([-30 30 -30 30])
-    title(strcat('t = ',num2str(i)))
+data1 = data(1:2:end,:);
+data2 = data(2:2:end,:);
+dist = 1435*sqrt((data1(:,2)-data2(:,2)).^2+(data1(:,3)-data2(:,3)).^2)-2*1435;
+meandist = mean(dist);
+histhist = -hist(dist,100)/1000;
+DMAX = max(dist);
+DMIN = min(dist);
+x = linspace(DMIN,DMAX,100);
+plot(x,histhist)
+figure(1)
+% axis([0 5 -0.5 0])
+
+% for i = 200:500
+%     plot(data((i-1)*pnum+1:i*pnum,2),data((i-1)*pnum+1:i*pnum,3),'ko','markersize',6,'MarkerFaceColor','k')
+%     axis([-30 30 -30 30])
+%     title(strcat('t = ',num2str(i)))
 %     if i == 1
 %         xx = input('wait');
 %     end
-    drawnow
+%     drawnow
+%     mov(i) = getframe(gcf);
 %     pause(0.1)
-end
+% end
+% movie2avi(mov,'movie.avi','fps',5)
 % range = data(601:900,:);
 % Result = [];
 % dist = ones(300,300);

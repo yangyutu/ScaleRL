@@ -40,7 +40,7 @@ protected:
     std::string filetag;
     std::ofstream file;
     
-    double r[np3], psi6, c6, rg, lambda, rmin, dt;
+    double r[np3], psi6, rg, lambda, rmin, dt;
     double DiffTrans, DiffRot;
     std::shared_ptr<std::uniform_int_distribution<>> rand_int;
 

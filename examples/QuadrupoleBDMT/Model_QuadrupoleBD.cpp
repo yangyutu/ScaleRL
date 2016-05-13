@@ -3,38 +3,19 @@
 using namespace ReinforcementLearning;
 // this model is from paper Lease-squares policy iteration
 
+Model_QuadrupoleBD::Model_QuadrupoleBD(std::string filetag0) {
+    Initializer(filetag0);
+}
+
 Model_QuadrupoleBD::Model_QuadrupoleBD(std::string filetag0,int R) {
-    filetag = filetag0;
-    //	we have three low dimensional states psi6, c6, rg
-    // nstep 10000 correspond to 1s, every run will run 1s
-    nstep = 10000;
-    stateDim = 3;
-    currState.resize(stateDim);
-    prevState.resize(stateDim);
-    dt = 1000.0/nstep; //ms
-    numActions = 4;
-    trajOutputInterval = 1;
-    fileCounter = 0;
-    rand_normal = std::make_shared<std::normal_distribution<double>>(0.0, 1.0);
-    rand_int = std::make_shared<std::uniform_int_distribution<>>(0, 1000);
-    rgbin = 25;
-    rbin = 50;
-    a = 1435.0;
-    kb = 1.380658e-23;
+    Initializer(filetag0);
     n_rows = R;
     n_cols = R;
     dx1 = 1.0/R;
     dx2 = 1.0/R;
-
-    for (int i = 0; i < np; i++) {
-        nxyz[i][0] = 3 * i;
-        nxyz[i][1] = 3 * i + 1;
-        nxyz[i][2] = 3 * i + 2;
-	nlist.push_back(std::vector<int>());
-    }
 }
 
-Model_QuadrupoleBD::Model_QuadrupoleBD(std::string filetag0) {
+void Model_QuadrupoleBD::Initializer(std::string filetag0){
     filetag = filetag0;
     //	we have three low dimensional states psi6, c6, rg
     // nstep 10000 correspond to 1s, every run will run 1s
@@ -51,7 +32,7 @@ Model_QuadrupoleBD::Model_QuadrupoleBD(std::string filetag0) {
     rgbin = 25;
     rbin = 50;
     a = 1435.0;
-    L = 100;
+    L = 287.0;
     kb = 1.380658e-23;
 
     for (int i = 0; i < np; i++) {
@@ -61,7 +42,6 @@ Model_QuadrupoleBD::Model_QuadrupoleBD(std::string filetag0) {
 	nlist.push_back(std::vector<int>());
     }
 }
-
 void Model_QuadrupoleBD::run(int action) { //每次run 1s的traj
     this->opt = action;
     if (this->timeCounter == 0 || ((this->timeCounter + 1) % trajOutputInterval == 0)) {
@@ -236,7 +216,7 @@ void Model_QuadrupoleBD::runHelper(int nstep, int controlOpt) {
         forces(step);
         double u;
         for (int j = 0; j < np3; j++) {
-            u = D[j] * (F[j] * fac1 + randisp[j] * fac2);
+            u = D[j] * (F[j] * fac1+randisp[j]* fac2);
             r[j] += u * dt;
         }
         step++;
@@ -276,6 +256,11 @@ void Model_QuadrupoleBD::forces(int sstep) {
             } else {
                 Fpp = 0;
             }
+	    if (rijsep > 2*a && (rijsep < (2*a + 2*L))){
+		FOS = (4.0/3.0)* Os_pressure*M_PI*(-0.75*(a+L)*(a+L)*1e-18+0.1875*rijsep*rijsep*1e-18)*1e9;
+	    } else {
+		FOS = 0;
+	    }
 // particle-particle interaction & dipole-dipole interaction             
             if (rijsep > 2*a && rijsep < re){
                 Exj = -4.0*r[nxyz[j][0]]/DG;
@@ -301,9 +286,6 @@ void Model_QuadrupoleBD::forces(int sstep) {
                 felynew2=Fo*pow(2*a/rijsep,4)*(F1*rij[1]/rijsep +
                         Eyi*F3 + Eyj*F2 - 5*F2*F3*rij[1]/rijsep-
                         rijsep*16*r[nxyz[i][1]]/pow(DG,2)/3.0+F2*4*(rij[1])/DG);
-                FOS = -4.0/3.0* Os_pressure*M_PI*(-0.75*pow((1+L/a)*a,2)+0.1875*rijsep*rijsep);
-//                FOS = exp(-30/(rijsep/a));
-//                FOS = 0;
             } else {
 
                 felx = 0.0;
@@ -342,8 +324,8 @@ void Model_QuadrupoleBD::forces(int sstep) {
         dE2y = (EMAGJ * EMAGJ - EMAGI * EMAGI) / STEP;
         Fdepx = (2 * 1e18 * kb * (tempr + 273) * lambda / fcm) * dE2x;
         Fdepy = (2 * 1e18 * kb * (tempr + 273) * lambda / fcm) * dE2y;
-        F[nxyz[i][0]] += Fdepx;
-        F[nxyz[i][1]] += Fdepy;
+//        F[nxyz[i][0]] += Fdepx;
+//        F[nxyz[i][1]] += Fdepy;
 
     }
 }

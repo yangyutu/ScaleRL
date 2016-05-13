@@ -14,7 +14,6 @@
 using namespace ReinforcementLearning;
 
 void Quench(std::string filename, int polygon);
-void writeCountMap(arma::cube CountMap);
 void RLMT(char* filename2, int thread, int polygon);
 
 int main(int argc, char* argv[]) {
@@ -27,7 +26,9 @@ int main(int argc, char* argv[]) {
 	int polygon = boost::lexical_cast<int>(argv[3]);
         std::cout << thread << " threads" << std::endl;
         RLMT(argv[1],thread,polygon);
-    } else { std::cout << "Argument number was not recognized" << std::endl;}
+    } else { 
+        std::cout << "Argument number was not recognized" << std::endl;
+    }
     return 0;
 }
 
@@ -38,7 +39,7 @@ void Quench(std::string filename, int polygon){
         model->createInitialState();
         iter = 0;
         std::cout << "t = 0" << std::endl;
-       while (iter < 20) {
+       while (iter < 100) {
 //        while (iter < 300 && !model->terminate()) {
             model->run(3);
 	    std::cout << "t = " << iter+1 << std::endl;
@@ -75,15 +76,4 @@ void RLMT(char* filename2, int thread, int polygon){
     rlSolver.getQTable().slice(3).fill(1);
 //    rlSolver.loadQTable("./QTableFile/QTableFinal");
     rlSolver.train();
-}
-
-void writeCountMap(arma::cube CountMap) {
-    arma::mat temp1 = CountMap.slice(1);
-    temp1.save("Option1.dat", arma::raw_ascii);
-    arma::mat temp2 = CountMap.slice(2);
-    temp2.save("Option2.dat", arma::raw_ascii);
-    arma::mat temp3 = CountMap.slice(3);
-    temp3.save("Option3.dat", arma::raw_ascii);
-    arma::mat temp4 = CountMap.slice(4);
-    temp4.save("Option4.dat", arma::raw_ascii);
 }

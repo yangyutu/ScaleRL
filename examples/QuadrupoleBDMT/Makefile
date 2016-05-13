@@ -1,7 +1,7 @@
 
 include ../Makefile.common
 
-CXXFLAGS += $(DEBUGFLAG) -I../quadrupoleMT
+CXXFLAGS += $(RELEASEFLAG) -I../quadrupoleMT
 OBJ= RLSolver_2DTableMT.o Model_QuadrupoleBD.o mainC.o
 #please check your compiler for these options
 

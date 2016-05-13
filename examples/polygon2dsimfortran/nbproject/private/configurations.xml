@@ -4,7 +4,6 @@
     <df root="." name="0">
       <in>TrajAna.m</in>
       <in>calorder.f</in>
-      <in>commondata.mod</in>
       <in>commondataset.f</in>
       <in>main.f</in>
       <in>rainbowcubes.m</in>
@@ -38,8 +37,6 @@
         <gdb_interceptlist>
           <gdbinterceptoptions gdb_all="false" gdb_unhandled="true" gdb_unexpected="true"/>
         </gdb_interceptlist>
-        <gdb_signals>
-        </gdb_signals>
         <gdb_options>
           <DebugOptions>
             <option name="debug_command" value="./bdpd"/>

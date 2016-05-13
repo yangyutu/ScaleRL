@@ -12,17 +12,18 @@ public:
     Model_QuadrupoleBD(){}
     Model_QuadrupoleBD(std::string filetag0, int R);
     Model_QuadrupoleBD(std::string filetag0);
+    void Initializer(std::string filetag0);
     virtual ~Model_QuadrupoleBD(){ }
     virtual void run(int action);
     virtual void createInitialState();
     virtual double getRewards();
     virtual bool terminate();
 protected:
-    static const int np = 300;
-    static const int np3 = 900;
+    static const int np = 2;
+    static const int np3 = 6;
     static const int rgdssbin = 25;
     static const int distdssbin = 50;
-    const double Os_pressure = 4.908815909783327e-16;
+    const double Os_pressure = 0.0612;
     std::vector<std::vector<int>> nlist;
     int R, n_rows, n_cols;
     double dx1, dx2;

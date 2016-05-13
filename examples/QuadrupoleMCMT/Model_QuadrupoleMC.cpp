@@ -32,13 +32,11 @@ void Model_QuadrupoleMC::run(int action) {
     this->outputTrajectory(this->trajOs);
     this->outputOrderParameter(this->opOs);
     this->runHelper(nstep,opt);
-    c6 = c6 / 5.6;
     this->prevState = this->currState;
     this->currState[0] = psi6;
-    this->currState[1] = c6;
+    this->currState[1] = rg;
     this->timeCounter++;
 }
-
 void Model_QuadrupoleMC::createInitialState() {
     std::stringstream FileStr;
     FileStr << this->fileCounter;
@@ -52,10 +50,8 @@ void Model_QuadrupoleMC::createInitialState() {
     this->trajOs.open(filetag + "xyz_" + ss.str() + ".dat");
     this->opOs.open(filetag + "op" + ss.str() + ".dat");
     this->timeCounter = 0;
-    
-    
+    Edge.clear();
     this->InitializeEdge();
-
     for (int i = 0; i < np - 1; i++){
         for (int j = i+1; j < np; j++){
             if(this->CheckOverlap(i,j) > 2){
@@ -68,11 +64,11 @@ void Model_QuadrupoleMC::createInitialState() {
     std::cout << " No Overlapping at Starting State" << std::endl;
     this->runHelper(0,3);
     this->InitializeIndexMap();
-    c6 = c6 / 5.6;
     this->currState[0] = psi6;
-    this->currState[1] = c6;
+    this->currState[1] = rg;
 }
 void Model_QuadrupoleMC::InitializeIndexMap(){
+    IndexMap.reset();
     IndexMap.set_size(IndexR,IndexR);
     for (int i = 0; i < np; i++){
         DiscretizedR[i][0] = ceil(r[i*3+0]/(60/IndexR)) + IndexR/2;
@@ -80,7 +76,6 @@ void Model_QuadrupoleMC::InitializeIndexMap(){
         IndexMap(DiscretizedR[i][0],DiscretizedR[i][1]).push_back(i);
     }
 }
-
 void Model_QuadrupoleMC::InitializeEdge(){
     for (int i = 0; i < np; i++){
         for (int j = 0; j < polygon; j++){
@@ -89,7 +84,6 @@ void Model_QuadrupoleMC::InitializeEdge(){
         }
     }
 }
-
 void Model_QuadrupoleMC::outputTrajectory(std::ostream& os) {
 
     for (int i = 0; i < np; i++) {
@@ -100,17 +94,14 @@ void Model_QuadrupoleMC::outputTrajectory(std::ostream& os) {
         os << std::endl;
     }
 }
-
 void Model_QuadrupoleMC::outputOrderParameter(std::ostream& os) {
     os << this->timeCounter << "\t";
     os << psi6 << "\t";
-    os << c6 << "\t";
     os << rg << "\t";
     os << opt << "\t";
     os << lambda << "\t";
     os << std::endl;
 }
-
 double Model_QuadrupoleMC::getRewards() {
     if (this->terminate()) {
         this->reward = 0;
@@ -120,12 +111,10 @@ double Model_QuadrupoleMC::getRewards() {
         return reward;
     }
 }
-
 bool Model_QuadrupoleMC::terminate() {
     if (currState[0] > 0.90) {return true;}
     return false;
 }
-
 void Model_QuadrupoleMC::readxyz(const std::string filename) {
     std::ifstream is;
     is.open(filename.c_str());
@@ -137,12 +126,11 @@ void Model_QuadrupoleMC::readxyz(const std::string filename) {
         linestream >> dum;
         linestream >> r[3 * i];
         linestream >> r[3 * i + 1];
-//        linestream >> dum;
+        linestream >> dum;
         linestream >> r[3 * i + 2];
     }
     is.close();
 }
-
 void Model_QuadrupoleMC::runHelper(int nstep, int controlOpt) {
 // Covert control option to lambda and run MC simulation for 1s in 1e5 steps
     if (controlOpt == 0) {lambda = 0.1;}
@@ -154,7 +142,6 @@ void Model_QuadrupoleMC::runHelper(int nstep, int controlOpt) {
     }
     this->calOp();
 }
-
 void Model_QuadrupoleMC::MonteCarlo(){
 /* Use MC method to simulate the trajectory of particles for 1s.
  * The idea is to update the location and motion of each particle 
@@ -245,7 +232,6 @@ void Model_QuadrupoleMC::MonteCarlo(){
         TempEdge.clear();
     }
 }
-
 int Model_QuadrupoleMC::CheckOverlap(int i, int j){
 /* check overlap by filling in the indices of two particles needed to be checked;
  * the result is 0 if not overlap and 10 otherwise. The checking requires r matrix and 
@@ -282,11 +268,16 @@ int Model_QuadrupoleMC::CheckOverlap(int i, int j){
 
 void Model_QuadrupoleMC::calOp() {
 
-    int nb[np], con[np];
-    double rx[np], ry[np];
-    double rxij, ryij, theta, psir[np], psii[np], numer, denom, testv, ctestv;
+    int nb[np];
+    double rx[np], ry[np], phi[np];
+    double rxij, ryij, psir[np], psii[np], scale;
     double rgmean, xmean, ymean, accumpsi6r, accumpsi6i;
-    ctestv = 0.32;
+    
+    if (polygon == 3) {scale = 6.0;} 
+    else if (polygon == 4){scale = 4.0;} 
+    else if (polygon == 6){scale = 3.0;} 
+    else {scale = 1.0;}
+    
     for (int i = 0; i < np; i++) {
         rx[i] = r[i*3+0];
         ry[i] = r[i*3+1];
@@ -300,11 +291,10 @@ void Model_QuadrupoleMC::calOp() {
                 rxij = rx[j] - rx[i];
                 ryij = ry[j] - ry[i];
                 double RP = sqrt(rxij * rxij + ryij * ryij);
-                if (RP < rmin) {
+                if (RP <= rmin) {
                     nb[i] += 1;
-                    theta = std::atan2(ryij, rxij);
-                    psir[i] += cos(6 * theta);
-                    psii[i] += sin(6 * theta);
+                    psir[i] += cos(scale * r[i*3+2]);
+                    psii[i] += sin(scale * r[i*3+2]);
                 }
             }        
         } 
@@ -313,6 +303,7 @@ void Model_QuadrupoleMC::calOp() {
                 psii[i] /=  nb[i];
             }
     }
+    
     psi6 = 0;
     accumpsi6r = 0;
     accumpsi6i = 0;
@@ -323,27 +314,6 @@ void Model_QuadrupoleMC::calOp() {
     accumpsi6r = accumpsi6r / np;
     accumpsi6i = accumpsi6i / np;
     psi6 = sqrt(accumpsi6r * accumpsi6r + accumpsi6i * accumpsi6i);
-    c6 = 0.0;
-    for (int i = 0; i < np; i++) {
-        con[i] = 0;
-        for (int j = 0; j < np; j++) {
-            rxij = rx[j] - rx[i];
-            ryij = ry[j] - ry[i];
-            double rp = sqrt(rxij * rxij + ryij * ryij);
-            if ((i != j)&&(rp <= rmin)) {
-
-                numer = psir[i] * psir[j] + psii[i] * psii[j];
-                double temp = psii[i] * psir[j] - psii[j] * psir[i];
-                denom = sqrt(numer * numer + temp*temp);
-                testv = numer / denom;
-                if (testv >= ctestv) {
-                    con[i] += 1;
-                }
-            }
-        }
-        c6 = c6 + con[i];
-    }
-    c6 /= np;
     //      calculate Rg
     xmean = 0;
     ymean = 0;
@@ -355,10 +325,10 @@ void Model_QuadrupoleMC::calOp() {
     ymean /= np;
     rgmean = 0;
     for (int i = 0; i < np; i++) {
-        rgmean = rgmean + (rx[i] - xmean)*(rx[i] - xmean);
-        rgmean = rgmean + (ry[i] - ymean)*(ry[i] - xmean);
+        rgmean = rgmean + pow((rx[i] - xmean),2) + pow((rx[i] - xmean),2);
+        rgmean = rgmean + pow((ry[i] - ymean),2) + pow((ry[i] - xmean),2);
     }
     rgmean /= np;
-    rgmean = sqrt(rgmean);
-    rg = rgmean;
+    rg = sqrt(rgmean);
+    rg = (rg - 6.0)/24.0;
 }
