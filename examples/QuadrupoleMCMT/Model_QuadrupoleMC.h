@@ -42,15 +42,14 @@ protected:
     
     double r[np3], psi6, rg, lambda, rmin, dt;
     double DiffTrans, DiffRot;
-    std::shared_ptr<std::uniform_int_distribution<>> rand_int;
-
+    std::uniform_real_distribution<double> rand_uniform;
     void outputTrajectory(std::ostream& os);
     void outputOrderParameter(std::ostream& os);
     void readxyz(const std::string filename);
     void readDiffusivity(const std::string filename);
     void runHelper(int nstep, int opt);
     void MonteCarlo();
-    int CheckOverlap(int i, int j);
+    bool CheckOverlap(int i, int j);
     void calOp();
     void calDss();
     void InitializeIndexMap();

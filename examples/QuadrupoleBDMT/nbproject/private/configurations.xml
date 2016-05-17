@@ -5,6 +5,7 @@
       <df name="StartMeshgridFolder">
       </df>
       <df name="traj">
+        <in>OSP.m</in>
         <in>OsmoticPressureCalc.m</in>
         <in>trajana.m</in>
       </df>
@@ -15,6 +16,7 @@
       <in>mainC.cpp</in>
       <in>plottraj.m</in>
     </df>
+    <itemPath>../../src/RLSolver_2DTable.cpp</itemPath>
   </logicalFolder>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
@@ -41,8 +43,6 @@
         <gdb_interceptlist>
           <gdbinterceptoptions gdb_all="false" gdb_unhandled="true" gdb_unexpected="true"/>
         </gdb_interceptlist>
-        <gdb_signals>
-        </gdb_signals>
         <gdb_options>
           <DebugOptions>
             <option name="debug_command" value="./test"/>

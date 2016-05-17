@@ -24,16 +24,19 @@ void testQLearningMT(char* filename2, int t);
 
 
 int main(int argc, char* argv[]) {
-    testCppModel("traj/");
+    if (argc == 1){
+	testCppModel("traj/");
+    } else if (argc == 2){
 //    testCppModelMT(boost::lexical_cast<int>(argv[1]));
-//    testQLearning(argv[1]);
-    if ( argc == 3) {
+    	testQLearning(argv[1]);
+    } else if ( argc == 3) {
         std::cout << argc << " arguments" << std::endl;
         int thread = boost::lexical_cast<int>(argv[2]);
         std::cout << thread << " threads" << std::endl;
         testQLearningMT(argv[1],thread);
+    } else {
+	std::cout << "argument number not recognized" << std::endl;
     }
-    
     return 0;
 }
 
@@ -47,7 +50,7 @@ void testCppModel(std::string filename){
         std::cout << i << std::endl;
         iter = 0;
         std::cout << "t = " << iter << std::endl;
-       while (iter < 100) {
+       while (iter < 10000) {
 //        while (iter < 20 && !model->terminate()) {
             model->run(0);
             iter++;
@@ -77,27 +80,6 @@ void testCppModelMT(int nthreads){
      delete[] threads;
 }
 
-/*
-void testFortranModel(){
-    std::ofstream os1, os2;
-    os1.open("bd_xyzC.txt");
-    os2.open("opC.txt");
-    double r[900];
-    int n, opt, nstep;
-    n = 300;
-    nstep = 10000;
-    opt = 3;
-    double t, psi6, c6, rg, lambda;
-
-    readxyz(r, n, "startmeshgrid1.txt");
-    for (int i = 0; i < 10; i++) {
-        run_fortran_(r, &n, &nstep, &psi6, &c6, &rg, &opt, &lambda);
-        writexyz(r, n, os1);
-        t = i * 0.1 * nstep / 1000.0;
-        writeOp(t, psi6, c6, rg, lambda, opt, os2);
-    }
-}
-*/
 void readxyz(double *r, int np, const std::string filename) {
     std::ifstream is;
     is.open(filename.c_str());
@@ -134,36 +116,6 @@ void writeOp(double t, double psi6, double c6, double rg, double lambda, int opt
     os << std::endl;
 }
 
-void writeCountMap(arma::cube CountMap) {
-    arma::mat temp1 = CountMap.slice(1);
-    temp1.save("Option1.dat", arma::raw_ascii);
-    arma::mat temp2 = CountMap.slice(2);
-    temp2.save("Option2.dat", arma::raw_ascii);
-    arma::mat temp3 = CountMap.slice(3);
-    temp3.save("Option3.dat", arma::raw_ascii);
-    arma::mat temp4 = CountMap.slice(4);
-    temp4.save("Option4.dat", arma::raw_ascii);
-//    std::ofstream OCountMap1, OCountMap2, OCountMap3, OCountMap4;
-//    OCountMap1.open("Option1.dat");
-//    OCountMap2.open("Option2.dat");
-//    OCountMap3.open("Option3.dat");
-//    OCountMap4.open("Option4.dat");
-//    for (int i = 0; i < n_rows; i++) {
-//	for (int j = 0; j < n_cols; j++){
-//	    OCountMap1 << CountMap(i, j, 1) << "\t";
-//	    OCountMap2 << CountMap(i, j, 2) << "\t";
-//	    OCountMap3 << CountMap(i, j, 3) << "\t";
-//	    OCountMap4 << CountMap(i, j, 4) << "\t";
-//	    if (j == n_cols - 1){
-//		OCountMap1 << "\n";
-//		OCountMap2 << "\n";
-//		OCountMap3 << "\n";
-//		OCountMap4 << "\n";
-//	    }
-//	}
-//    }
-}
-
 void testQLearning(char* filename2){
     ReinforcementLearningParameter message2;
     QLearningSolverParameter message3;
@@ -187,7 +139,6 @@ void testQLearning(char* filename2){
 
 
 void testQLearningMT(char* filename2, int thread){
-
     ReinforcementLearningParameter message2;
     QLearningSolverParameter message3;
     ReadProtoFromTextFile(filename2, &message2);

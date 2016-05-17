@@ -324,8 +324,8 @@ void Model_QuadrupoleBD::forces(int sstep) {
         dE2y = (EMAGJ * EMAGJ - EMAGI * EMAGI) / STEP;
         Fdepx = (2 * 1e18 * kb * (tempr + 273) * lambda / fcm) * dE2x;
         Fdepy = (2 * 1e18 * kb * (tempr + 273) * lambda / fcm) * dE2y;
-//        F[nxyz[i][0]] += Fdepx;
-//        F[nxyz[i][1]] += Fdepy;
+        F[nxyz[i][0]] += Fdepx;
+        F[nxyz[i][1]] += Fdepy;
 
     }
 }

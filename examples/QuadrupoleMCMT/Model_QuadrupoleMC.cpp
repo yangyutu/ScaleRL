@@ -17,6 +17,7 @@ Model_QuadrupoleMC::Model_QuadrupoleMC(std::string filetag0,int R, int polygon0)
     numActions = 4;
     fileCounter = 0;
     rand_normal = std::make_shared<std::normal_distribution<double>>(0.0, 1.0);
+    rand_uniform = std::uniform_real_distribution<double> (0, 1);
     a = sin(0.5*pi-pi/polygon);
     EdgeLength = a*tan(pi/polygon);
     n_rows = R;
@@ -43,7 +44,6 @@ void Model_QuadrupoleMC::createInitialState() {
 //    this->readxyz("./StartMeshgridFolder/startmeshgrid" + FileStr.str() + ".txt");
     this->readxyz("./StartMeshgridFolder/startmeshgrid1.txt");
     std::stringstream ss;
-    std::cout << "model initialize at round " << fileCounter << std::endl;
     ss << this->fileCounter++;
     if (trajOs.is_open()) trajOs.close();
     if (opOs.is_open()) opOs.close();
@@ -54,21 +54,22 @@ void Model_QuadrupoleMC::createInitialState() {
     this->InitializeEdge();
     for (int i = 0; i < np - 1; i++){
         for (int j = i+1; j < np; j++){
-            if(this->CheckOverlap(i,j) > 2){
+            if(this->CheckOverlap(i,j) == true){
                 std::cout << "Initial State Overlaps Between Particle " 
                         << i+1 << " and " << j+1<< std::endl;
                 exit(2);
             }            
         }
     }
-    std::cout << " No Overlapping at Starting State" << std::endl;
     this->runHelper(0,3);
     this->InitializeIndexMap();
     this->currState[0] = psi6;
     this->currState[1] = rg;
 }
 void Model_QuadrupoleMC::InitializeIndexMap(){
-    IndexMap.reset();
+    if (!IndexMap.empty()){
+        IndexMap.clear();
+    }
     IndexMap.set_size(IndexR,IndexR);
     for (int i = 0; i < np; i++){
         DiscretizedR[i][0] = ceil(r[i*3+0]/(60/IndexR)) + IndexR/2;
@@ -191,7 +192,7 @@ void Model_QuadrupoleMC::MonteCarlo(){
         DiscretizedRNew[1] = ceil(r[i*3+1]/(60/IndexR)) + IndexR/2;
 /* Test overlapping of particles that are in the 8 zones around
  * the location of new particle i location */
-        int OverLapTot = 0;
+        bool OverLapCheck = false;
         for (int ii = -2; ii <= 2; ii++){
             for (int jj = -2; jj <= 2; jj++){
                 for (int kk = 0; kk < IndexMap(DiscretizedRNew[0]+ii,DiscretizedRNew[1]+jj).size();kk++){
@@ -201,10 +202,10 @@ void Model_QuadrupoleMC::MonteCarlo(){
                         tempdist =sqrt((r[Index*3] - r[i*3])*(r[Index*3] - r[i*3]) + 
                             (r[Index*3+1] - r[i*3+1])*(r[Index*3+1] - r[i*3+1]));    
                         if (tempdist < 2*a){
-                            OverLapTot = 10;
+                            OverLapCheck = true;
                         }
-                        else if (this->CheckOverlap(i,Index) > 1){
-                            OverLapTot = 10;
+                        else if (this->CheckOverlap(i,Index) == true){
+                            OverLapCheck = true;
                         }
                     }
                     
@@ -212,8 +213,20 @@ void Model_QuadrupoleMC::MonteCarlo(){
                 }
             }
         }
+// If no overlap, accept the move at the ratio of Boltzmann distribution        
+       bool move = true;
+       double PotentialDiff = (r[i*3+0]*r[i*3+0] + r[i*3+1]*r[i*3+1]) - (TempR[0]*TempR[0] + TempR[1]*TempR[1]);
+       if (PotentialDiff > 0){
+           double RanGen = rand_uniform(rand_generator);
+           double BoltzmannDist = exp(-0.5*lambda*
+           ((r[i*3+0]*r[i*3+0] + r[i*3+1]*r[i*3+1]) - 
+           (TempR[0]*TempR[0] + TempR[1]*TempR[1])));
+           if (RanGen >= BoltzmannDist){
+               move = false;
+           }
+       }
 // If no overlap, this movement is allowed; update IndexMap and DiscretizedR 
-        if (OverLapTot < 1){
+        if (OverLapCheck == false && move == true){
             IndexMap(DiscretizedRNew[0],DiscretizedRNew[1]).push_back(IndexMap(DiscretizedR[i][0],DiscretizedR[i][1]).at(0));
             IndexMap(DiscretizedR[i][0],DiscretizedR[i][1]).erase(IndexMap(DiscretizedR[i][0],DiscretizedR[i][1]).begin());
             DiscretizedR[i][0] = DiscretizedRNew[0];
@@ -232,7 +245,7 @@ void Model_QuadrupoleMC::MonteCarlo(){
         TempEdge.clear();
     }
 }
-int Model_QuadrupoleMC::CheckOverlap(int i, int j){
+bool Model_QuadrupoleMC::CheckOverlap(int i, int j){
 /* check overlap by filling in the indices of two particles needed to be checked;
  * the result is 0 if not overlap and 10 otherwise. The checking requires r matrix and 
  * edge matrix information */
@@ -257,13 +270,13 @@ int Model_QuadrupoleMC::CheckOverlap(int i, int j){
 //                            << Det << "\t" << Det1 << "\t" << Det2 << "\t"
 //                            << Frac1 << "\t" << Frac2 << std::endl;
                     if (Frac1 <= EdgeLength && Frac2 <= EdgeLength){
-                        return 10;
+                        return true;
                     }
                 }
             }
         }
     }
-    return 0;
+    return false;
 }
 
 void Model_QuadrupoleMC::calOp() {
@@ -330,5 +343,5 @@ void Model_QuadrupoleMC::calOp() {
     }
     rgmean /= np;
     rg = sqrt(rgmean);
-    rg = (rg - 6.0)/24.0;
+    rg = 1.0 - (rg - 6.0)/24.0;
 }
