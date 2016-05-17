@@ -34,42 +34,36 @@ void RLSolver_2DTable::train() {
     double maxQ, reward;
     int action;
     double epi = trainingPara.epsilon();
-    int maxIter = trainingPara.numtrainingepisodes();
-    int epiLength = trainingPara.episodelength();
-    int controlInterval = trainingPara.controlinterval();
-    int QTableOutputInterval = trainingPara.qtableoutputinterval();
-    bool experienceReplayFlag = true;
-    for (int i = 0; i < maxIter; i++) {
-        std::cout << "training Episodes " << i << std::endl;
+    int CycleNumber = trainingPara.numtrainingepisodes();
+    int CycleTimeLength = trainingPara.episodelength();
+    int UpdateTime = trainingPara.controlinterval();
+    for (int i = 0; i < CycleNumber; i++) {
         iter = 0;
         model->createInitialState();
-        while (!model->terminate() && iter < epiLength) {
+	std::cout << "Cycle " << i+1 << " successfully initialized.." << std::endl;
+        while (!model->terminate() && iter < CycleTimeLength) {
             State oldState = model->getCurrState();
             if (randChoice->nextDou() < epi){
                 getMaxQ(oldState,&maxQ,&action);
             } else {
                 action = randChoice->nextInt();
             }
-            model->run(action, controlInterval);
+            model->run(action, UpdateTime);
             State newState = model->getCurrState();
             reward = model->getRewards();
             this->updateQ(Experience(oldState, newState, action, reward));
-            if (experienceReplayFlag) {
-                experienceVec.push_back(Experience(oldState, newState, action, reward));
-            }
-             iter++;
+            experienceVec.push_back(Experience(oldState, newState, action, reward));
+            iter++;
+            std::cout << "Current cycle completed: " << iter << "/" << CycleTimeLength << ".." << std::endl;
         }
         // after an episode, do experience reply
-        this->replayExperience();
-        std::cout << "duration: " << iter << std::endl;
-        if (i == 0 || ((i + 1) % QTableOutputInterval == 0)) {
-            std::stringstream ss;        
-            ss << i;
-            this->outputQ("QTable_" + ss.str() + "iter");
-        }
+	int ExperienceSize = experienceVec.size();      
+	this->replayExperience(ExperienceSize);
+        std::cout << "Current cycle completed" << std::endl;
     }
         this->outputQ("QTableFinal");
         this->outputPolicy();
+        std::cout << "Simulation completed" << std::endl;
 }
 
 void RLSolver_2DTable::replayExperience(int experienceSetSize){
@@ -140,15 +134,12 @@ void RLSolver_2DTable::getMaxQ(const State& S, double* maxQ, int* action){
 
 std::pair<int, int> RLSolver_2DTable::stateToIndex(const State& S){
     int idx1, idx2;
-//    std::cout << S[0] << ' ' << S[1] << std::endl;
-//    std::cout << minx1 << ' ' << dx1 << std::endl;
     idx1 = (int) ((S[0] - minx1)/dx1);
     idx2 = (int) ((S[1] - minx2)/dx2);
     if (idx1 < 0) idx1 = 0;
     if (idx1 >= n_rows) idx1 = n_rows - 1; 
     if (idx2 < 0) idx2 = 0;
     if (idx2 >= n_cols) idx2 = n_cols - 1;
-//    std::cout << idx1 << ' ' << idx2 << std::endl; 
     return std::pair<int, int>(idx1,idx2);
 }
 

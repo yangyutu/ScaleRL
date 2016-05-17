@@ -15,6 +15,7 @@
       <in>mainC.cpp</in>
       <in>plottraj.m</in>
     </df>
+    <itemPath>../../src/RLSolver_2DTable.cpp</itemPath>
   </logicalFolder>
   <projectmakefile>Makefile</projectmakefile>
   <confs>

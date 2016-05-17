@@ -40,9 +40,11 @@
         <gdb_interceptlist>
           <gdbinterceptoptions gdb_all="false" gdb_unhandled="true" gdb_unexpected="true"/>
         </gdb_interceptlist>
+        <gdb_signals>
+        </gdb_signals>
         <gdb_options>
           <DebugOptions>
-            <option name="debug_command" value="./test qsolver.prototxt 1 4"/>
+            <option name="debug_command" value="./test qsolver.prototxt 2 4"/>
           </DebugOptions>
         </gdb_options>
         <gdb_buildfirst gdb_buildfirst_overriden="false" gdb_buildfirst_old="false"/>
@@ -54,8 +56,10 @@
         <runcommandpicklist>
           <runcommandpicklistitem>"${OUTPUT_PATH}"</runcommandpicklistitem>
           <runcommandpicklistitem>./test 4</runcommandpicklistitem>
+          <runcommandpicklistitem>./test qsolver.prototxt 4</runcommandpicklistitem>
+          <runcommandpicklistitem>./test qsolver.prototxt 2 4</runcommandpicklistitem>
         </runcommandpicklist>
-        <runcommand>./test 4</runcommand>
+        <runcommand>./test qsolver.prototxt 2 4</runcommand>
         <rundir>.</rundir>
         <buildfirst>false</buildfirst>
         <terminal-type>0</terminal-type>

@@ -19,11 +19,11 @@ public:
     virtual double getRewards();
     virtual bool terminate();
 protected:
-    static const int np = 2;
-    static const int np3 = 6;
+    static const int np = 300;
+    static const int np3 = 900;
     static const int rgdssbin = 25;
     static const int distdssbin = 50;
-    const double Os_pressure = 0.0612;
+    const double Os_pressure = 0.0228;
     std::vector<std::vector<int>> nlist;
     int R, n_rows, n_cols;
     double dx1, dx2;

@@ -4,16 +4,37 @@ close all
 file = 'xyz_0.dat';
 data = load(file);
 pnum = max(data(:,1))+1;
+dist = [];
 data1 = data(1:2:end,:);
 data2 = data(2:2:end,:);
-dist = 1435*sqrt((data1(:,2)-data2(:,2)).^2+(data1(:,3)-data2(:,3)).^2)-2*1435;
-meandist = mean(dist);
-histhist = -hist(dist,100)/1000;
+ddist = 1435*sqrt((data1(:,2)-data2(:,2)).^2+(data1(:,3)-data2(:,3)).^2)-2*1435;
+for i = 1:10000
+    if ddist(i) < 500
+        dist = [dist ddist(i)];
+    end
+end
+% meandist = mean(dist);
+% y = histogram(dist,200);
+
+histhist = hist(dist,50)/9634;
+U = -log(histhist);
+for i = 1:size(U,2)
+    if U(i) >10
+        U(i) = 0;
+    end
+end
+Umax = max(U);
+for i = 1:size(U,2)
+    if U(i) == 0
+        U(i) = Umax;
+    end
+end
+U = U - max(U);
 DMAX = max(dist);
 DMIN = min(dist);
-x = linspace(DMIN,DMAX,100);
-plot(x,histhist)
-figure(1)
+x = linspace(DMIN,DMAX,50);
+plot(x,U)
+% figure(1)
 % axis([0 5 -0.5 0])
 
 % for i = 200:500

@@ -43,7 +43,6 @@ void Model_QuadrupoleMC::createInitialState() {
 //    this->readxyz("./StartMeshgridFolder/startmeshgrid" + FileStr.str() + ".txt");
     this->readxyz("./StartMeshgridFolder/startmeshgrid1.txt");
     std::stringstream ss;
-    std::cout << "model initialize at round " << fileCounter << std::endl;
     ss << this->fileCounter++;
     if (trajOs.is_open()) trajOs.close();
     if (opOs.is_open()) opOs.close();
@@ -61,14 +60,15 @@ void Model_QuadrupoleMC::createInitialState() {
             }            
         }
     }
-    std::cout << " No Overlapping at Starting State" << std::endl;
     this->runHelper(0,3);
     this->InitializeIndexMap();
     this->currState[0] = psi6;
     this->currState[1] = rg;
 }
 void Model_QuadrupoleMC::InitializeIndexMap(){
-    IndexMap.reset();
+    if (!IndexMap.empty()){
+        IndexMap.clear();
+    }
     IndexMap.set_size(IndexR,IndexR);
     for (int i = 0; i < np; i++){
         DiscretizedR[i][0] = ceil(r[i*3+0]/(60/IndexR)) + IndexR/2;
@@ -330,5 +330,5 @@ void Model_QuadrupoleMC::calOp() {
     }
     rgmean /= np;
     rg = sqrt(rgmean);
-    rg = (rg - 6.0)/24.0;
+    rg = 1.0 - (rg - 6.0)/24.0;
 }
