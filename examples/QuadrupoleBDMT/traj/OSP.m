@@ -1,9 +1,0 @@
-phi = 0.25;
-L = 1430*0.2*1e-9;
-v = 4*pi*L^3/3;
-n = phi/v;
-kT = 1.38*10^-23 * 298
-OSMOTIC = n*(1+4*phi); %nm^-3
-OP = OSMOTIC*kT;
-% OSkT = OSMOTIC/kT;
-% F = OSMOTIC*pi; %kg/m-s^2
