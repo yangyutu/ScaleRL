@@ -26,6 +26,7 @@ namespace ReinforcementLearning {
         virtual int getNumActions(){ return numActions;}
         virtual double getRewards() {}
         virtual bool terminate() {}
+	virtual double callpsi6(){return 0;}
     protected:
         State currState, prevState;
         int numActions;

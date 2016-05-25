@@ -5,17 +5,15 @@
       <df name="StartMeshgridFolder">
       </df>
       <df name="traj">
-        <in>OsmoticPressureCalc.m</in>
-        <in>trajana.m</in>
+        <in>TrajAna.m</in>
       </df>
-      <in>Model_QuadrupoleBD.cpp</in>
-      <in>Model_QuadrupoleBD.h</in>
+      <in>Model_QuadrupoleMC.cpp</in>
+      <in>Model_QuadrupoleMC.h</in>
       <in>RLSolver_2DTableMT.cpp</in>
       <in>RLSolver_2DTableMT.h</in>
       <in>mainC.cpp</in>
       <in>plottraj.m</in>
     </df>
-    <itemPath>../../src/RLSolver_2DTable.cpp</itemPath>
   </logicalFolder>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
@@ -42,9 +40,11 @@
         <gdb_interceptlist>
           <gdbinterceptoptions gdb_all="false" gdb_unhandled="true" gdb_unexpected="true"/>
         </gdb_interceptlist>
+        <gdb_signals>
+        </gdb_signals>
         <gdb_options>
           <DebugOptions>
-            <option name="debug_command" value="./test"/>
+            <option name="debug_command" value="./test 4"/>
           </DebugOptions>
         </gdb_options>
         <gdb_buildfirst gdb_buildfirst_overriden="false" gdb_buildfirst_old="false"/>
@@ -55,10 +55,9 @@
       <runprofile version="9">
         <runcommandpicklist>
           <runcommandpicklistitem>"${OUTPUT_PATH}"</runcommandpicklistitem>
-          <runcommandpicklistitem>./test</runcommandpicklistitem>
         </runcommandpicklist>
-        <runcommand>./test</runcommand>
-        <rundir>.</rundir>
+        <runcommand>"${OUTPUT_PATH}"</runcommand>
+        <rundir></rundir>
         <buildfirst>false</buildfirst>
         <terminal-type>0</terminal-type>
         <remove-instrumentation>0</remove-instrumentation>

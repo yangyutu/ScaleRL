@@ -21,14 +21,15 @@ void writexyz(double *r, int np, std::ostream &os);
 void writeOp(double t, double psi6, double c6, double rg, double lambda, int opt, std::ostream &os);
 void testQLearning(char* filename2);
 void testQLearningMT(char* filename2, int t);
-
+void MeanSquaredDisplacement(std::string filename);
 
 int main(int argc, char* argv[]) {
     if (argc == 1){
+//        MeanSquaredDisplacement("traj/");
 	testCppModel("traj/");
-    } else if (argc == 2){
-//    testCppModelMT(boost::lexical_cast<int>(argv[1]));
-    	testQLearning(argv[1]);
+    } else if (argc == 2){	
+	testCppModelMT(boost::lexical_cast<int>(argv[1]));
+//    	testQLearning(argv[1]);
     } else if ( argc == 3) {
         std::cout << argc << " arguments" << std::endl;
         int thread = boost::lexical_cast<int>(argv[2]);
@@ -39,22 +40,41 @@ int main(int argc, char* argv[]) {
     }
     return 0;
 }
-
+void MeanSquaredDisplacement(std::string filename){
+    std::shared_ptr<BaseModel> model(new Model_QuadrupoleBD(filename));
+    std::vector<double> phi6start = {0.2, 0.4, 0.6, 0.8};
+    int cycle = 0;
+    while(!phi6start.empty()){
+	double currstart = phi6start[0];
+	model->createInitialState();
+	std::cout << "cycle " << cycle << " target is Psi6 = " <<  currstart << std::endl;
+	int second = 0;
+	while (second < 100 && model->callpsi6() < currstart){
+	    model -> run(3);
+	    second++;
+	    std::cout << "t = " << second << " psi6 = " << model->callpsi6() << std::endl;
+	}
+	if (model->callpsi6() >= currstart-0.005){
+	    phi6start.erase(phi6start.begin());
+	    std::cout << "psi6 = " << currstart << " achieved.." << std::endl;
+	} else {
+	    std::cout << "psi6 = " << currstart << " not achieved, start the next cycle..." << std::endl;
+	}
+	cycle++;
+    }
+}
 void testCppModel(std::string filename){
     std::shared_ptr<BaseModel> model(new Model_QuadrupoleBD(filename));
-    
     int iter;
-    
-    for (int i = 0; i < 1; i++) {
+    for (int i = 0; i < 10; i++) {
         model->createInitialState();
-        std::cout << i << std::endl;
+        std::cout << "Cycle " << i << " is starting ..." << std::endl;
         iter = 0;
-        std::cout << "t = " << iter << std::endl;
-       while (iter < 10000) {
-//        while (iter < 20 && !model->terminate()) {
+       while (iter < 1000) {
+//        while (iter < 500 && !model->terminate()) {
             model->run(0);
             iter++;
-            std::cout << "t = " << iter << std::endl;
+            std::cout << "Cycle " << i << ", t = " << iter << std::endl;
         }
     }    
 }

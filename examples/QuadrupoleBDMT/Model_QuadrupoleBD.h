@@ -13,6 +13,7 @@ public:
     Model_QuadrupoleBD(std::string filetag0, int R);
     Model_QuadrupoleBD(std::string filetag0);
     void Initializer(std::string filetag0);
+    virtual double callpsi6();
     virtual ~Model_QuadrupoleBD(){ }
     virtual void run(int action);
     virtual void createInitialState();
@@ -23,7 +24,7 @@ protected:
     static const int np3 = 900;
     static const int rgdssbin = 25;
     static const int distdssbin = 50;
-    const double Os_pressure = 0.0228;
+    const double Os_pressure = 0.0149;
     std::vector<std::vector<int>> nlist;
     int R, n_rows, n_cols;
     double dx1, dx2;

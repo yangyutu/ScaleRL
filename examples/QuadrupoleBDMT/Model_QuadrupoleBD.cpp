@@ -121,7 +121,7 @@ double Model_QuadrupoleBD::getRewards() {
 
 bool Model_QuadrupoleBD::terminate() {
     // the model will stop if \psi6 > 0.95, which is perfect crystal
-    if (currState[0] > 0.90) {
+    if (currState[0] > 0.95) {
         return true;
     }
     return false;
@@ -258,6 +258,7 @@ void Model_QuadrupoleBD::forces(int sstep) {
             }
 	    if (rijsep > 2*a && (rijsep < (2*a + 2*L))){
 		FOS = (4.0/3.0)* Os_pressure*M_PI*(-0.75*(a+L)*(a+L)*1e-18+0.1875*rijsep*rijsep*1e-18)*1e9;
+//		FOS = 0;
 	    } else {
 		FOS = 0;
 	    }
@@ -326,7 +327,6 @@ void Model_QuadrupoleBD::forces(int sstep) {
         Fdepy = (2 * 1e18 * kb * (tempr + 273) * lambda / fcm) * dE2y;
         F[nxyz[i][0]] += Fdepx;
         F[nxyz[i][1]] += Fdepy;
-
     }
 }
 
@@ -480,4 +480,8 @@ void Model_QuadrupoleBD::buildlist(int i){
 	    nlist[i].push_back(kk);
 	}
     }
+}
+
+double Model_QuadrupoleBD::callpsi6(){
+    return this->psi6;
 }

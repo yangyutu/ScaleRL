@@ -18,8 +18,8 @@ Model_QuadrupoleMC::Model_QuadrupoleMC(std::string filetag0,int R, int polygon0)
     fileCounter = 0;
     rand_normal = std::make_shared<std::normal_distribution<double>>(0.0, 1.0);
     rand_uniform = std::uniform_real_distribution<double> (0, 1);
-    a = sin(0.5*pi-pi/polygon);
-    EdgeLength = a*tan(pi/polygon);
+    a = sin(0.5*pi-pi/polygon); // the length from center to edge
+    EdgeLength = a*tan(pi/polygon); // the length of half of edge
     n_rows = R;
     n_cols = R;
     dx1 = 1.0/R;
@@ -80,6 +80,7 @@ void Model_QuadrupoleMC::InitializeIndexMap(){
 void Model_QuadrupoleMC::InitializeEdge(){
     for (int i = 0; i < np; i++){
         for (int j = 0; j < polygon; j++){
+// Edge is the coordinate of the center of each each edge
             Edge.push_back(r[i*3] + a*cos(r[i*3+2] - 0.5*pi + j*Angle*pi));
             Edge.push_back(r[i*3+1] + a*sin(r[i*3+2] - 0.5*pi + j*Angle*pi));
         }
@@ -113,7 +114,7 @@ double Model_QuadrupoleMC::getRewards() {
     }
 }
 bool Model_QuadrupoleMC::terminate() {
-    if (currState[0] > 0.90) {return true;}
+    if (currState[0] > 0.95) {return true;}
     return false;
 }
 void Model_QuadrupoleMC::readxyz(const std::string filename) {
@@ -306,8 +307,8 @@ void Model_QuadrupoleMC::calOp() {
                 double RP = sqrt(rxij * rxij + ryij * ryij);
                 if (RP <= rmin) {
                     nb[i] += 1;
-                    psir[i] += cos(scale * r[i*3+2]);
-                    psii[i] += sin(scale * r[i*3+2]);
+                    psir[i] += cos(scale * r[j*3+2]);
+                    psii[i] += sin(scale * r[j*3+2]);
                 }
             }        
         } 

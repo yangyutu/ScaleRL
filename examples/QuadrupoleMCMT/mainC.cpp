@@ -13,14 +13,15 @@
 
 using namespace ReinforcementLearning;
 
-void Quench(std::string filename, int polygon);
+void Quench(std::string filename, int polygon, int thread_idx);
 void RLMT(char* filename2, int thread, int polygon);
 void RLST(char* filename2, int polygon);
+void QuenchMT(int thread);
 
 int main(int argc, char* argv[]) {
     if ( argc == 2){
-	int polygon = boost::lexical_cast<int>(argv[1]);
-	Quench("traj/",polygon);
+	int thread = boost::lexical_cast<int>(argv[1]);
+	QuenchMT(thread);
     } else if ( argc == 3) {
 	int polygon = boost::lexical_cast<int>(argv[2]);
 	RLST(argv[1],polygon);
@@ -34,21 +35,37 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 
-void Quench(std::string filename, int polygon){
-    std::cout << "Starting a quench sim" << std::endl;
+void Quench(std::string filename, int polygon, int thread_idx){
+    int cycle(10), second(1000);
     std::shared_ptr<BaseModel> model(new Model_QuadrupoleMC(filename,1,polygon));
     int iter;
-    for (int i = 0; i < 1; i++) {
+    for (int i = 0; i < cycle; i++) {
         model->createInitialState();
         iter = 0;
-        std::cout << "t = 0" << std::endl;
-       while (iter < 100) {
-//        while (iter < 300 && !model->terminate()) {
+//       while (iter < second) {
+        while (iter < second && !model->terminate()) {
             model->run(3);
-	    std::cout << "t = " << iter+1 << std::endl;
             iter++;
         }
+    std::cout << "Thread " << thread_idx+1 << " cycle " << i+1 << "completed" << std::endl;
     }
+}
+
+void QuenchMT(int nthreads){
+    int num_threads = nthreads;
+     std::thread *threads = new std::thread[num_threads];
+    std::cout << "There are " << num_threads << " threads"<< std::endl;
+    for (int thread_idx = 0; thread_idx < num_threads; thread_idx++){
+        std::stringstream ss;
+        ss << thread_idx;
+        threads[thread_idx] = std::thread(Quench, "traj/" + ss.str(), 4, thread_idx);    
+    }
+    
+    for (int thread_idx = 0; thread_idx < num_threads; thread_idx++){
+        threads[thread_idx].join();   
+    } 
+    
+     delete[] threads;
 }
 
 void RLST(char* filename2, int polygon){
@@ -65,7 +82,7 @@ void RLST(char* filename2, int polygon){
     double dx2 = 1.0/5.0;
     double minx1 = 0.0;
     double minx2 = 0.0;
-    std::cout << "Starting a single thread RL sim" << std::endl;
+    std::cout << "Starting a single thread RL simulation" << std::endl;
     std::shared_ptr<BaseModel> model(new Model_QuadrupoleMC("traj/control",Resolution,polygon));
     RLSolver_2DTable rlSolver(model, 2, message3, n_rows, n_cols, dx1, dx2, minx1, minx2);
 //    rlSolver.loadQTable("QTableFinal");
@@ -89,7 +106,7 @@ void RLMT(char* filename2, int thread, int polygon){
     double minx1 = 0.0;
     double minx2 = 0.0;
     int num_threads = thread;
-    std::cout << "Starting a " << thread << " thread RL sim" << std::endl;
+    std::cout << "Starting a " << thread << " thread RL simulation" << std::endl;
     std::vector<std::shared_ptr<BaseModel>> models;
     for (int i = 0; i < num_threads; i++){
         std::stringstream ss;
