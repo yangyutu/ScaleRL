@@ -17,7 +17,6 @@ namespace ReinforcementLearning {
         virtual ~RLSolver_2DTableMT() {}
         virtual void train();
     protected:
-        void outputExperience(std::string filename);
         static void trainOnMT(std::shared_ptr<BaseModel> m, int idx, ReinforcementLearning::QLearningSolverParameter para);        
         static std::mutex QTable_mutex;
         std::vector<std::shared_ptr<BaseModel>> models;

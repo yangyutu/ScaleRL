@@ -18,6 +18,7 @@ Model_QuadrupoleMC::Model_QuadrupoleMC(std::string filetag0,int R, int polygon0)
     fileCounter = 0;
     rand_normal = std::make_shared<std::normal_distribution<double>>(0.0, 1.0);
     rand_uniform = std::uniform_real_distribution<double> (0, 1);
+    // 1 is the length from center to corner
     a = sin(0.5*pi-pi/polygon); // the length from center to edge
     EdgeLength = a*tan(pi/polygon); // the length of half of edge
     n_rows = R;
@@ -128,7 +129,7 @@ void Model_QuadrupoleMC::readxyz(const std::string filename) {
         linestream >> dum;
         linestream >> r[3 * i];
         linestream >> r[3 * i + 1];
-        linestream >> dum;
+//        linestream >> dum;
         linestream >> r[3 * i + 2];
     }
     is.close();
@@ -194,8 +195,8 @@ void Model_QuadrupoleMC::MonteCarlo(){
 /* Test overlapping of particles that are in the 8 zones around
  * the location of new particle i location */
         bool OverLapCheck = false;
-        for (int ii = -2; ii <= 2; ii++){
-            for (int jj = -2; jj <= 2; jj++){
+        for (int ii = -5; ii <= 5; ii++){
+            for (int jj = -5; jj <= 5; jj++){
                 for (int kk = 0; kk < IndexMap(DiscretizedRNew[0]+ii,DiscretizedRNew[1]+jj).size();kk++){
                     Index = IndexMap(DiscretizedRNew[0]+ii,DiscretizedRNew[1]+jj).at(kk);
                     double tempdist;
@@ -287,9 +288,9 @@ void Model_QuadrupoleMC::calOp() {
     double rxij, ryij, psir[np], psii[np], scale;
     double rgmean, xmean, ymean, accumpsi6r, accumpsi6i;
     
-    if (polygon == 3) {scale = 6.0;} 
+    if (polygon == 3) {scale = 3.0;} 
     else if (polygon == 4){scale = 4.0;} 
-    else if (polygon == 6){scale = 3.0;} 
+    else if (polygon == 6){scale = 6.0;} 
     else {scale = 1.0;}
     
     for (int i = 0; i < np; i++) {

@@ -105,12 +105,3 @@ void RLSolver_2DTableMT::trainOnMT(std::shared_ptr<BaseModel> m,int thread_idx,R
     lk.unlock();
            
 }
-
-void RLSolver_2DTableMT::outputExperience(std::string filename) {
-    
-    std::ofstream os;
-    os.open(filename);
-    for (int i = 0; i < RLSolver_2DTableMT::experienceSetSize; i++){
-        os << RLSolver_2DTableMT::experienceVec[i] << std::endl;
-    }
- }

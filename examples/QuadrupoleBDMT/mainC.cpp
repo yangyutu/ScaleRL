@@ -72,7 +72,7 @@ void testCppModel(std::string filename){
         iter = 0;
        while (iter < 1000) {
 //        while (iter < 500 && !model->terminate()) {
-            model->run(0);
+            model->run(3);
             iter++;
             std::cout << "Cycle " << i << ", t = " << iter << std::endl;
         }

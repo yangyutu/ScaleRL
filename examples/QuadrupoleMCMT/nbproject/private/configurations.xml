@@ -12,7 +12,6 @@
       <in>RLSolver_2DTableMT.cpp</in>
       <in>RLSolver_2DTableMT.h</in>
       <in>mainC.cpp</in>
-      <in>plottraj.m</in>
     </df>
   </logicalFolder>
   <projectmakefile>Makefile</projectmakefile>
@@ -44,7 +43,7 @@
         </gdb_signals>
         <gdb_options>
           <DebugOptions>
-            <option name="debug_command" value="./test 4"/>
+            <option name="debug_command" value="./test 1"/>
           </DebugOptions>
         </gdb_options>
         <gdb_buildfirst gdb_buildfirst_overriden="false" gdb_buildfirst_old="false"/>

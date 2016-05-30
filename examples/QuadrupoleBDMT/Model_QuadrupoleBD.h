@@ -24,7 +24,15 @@ protected:
     static const int np3 = 900;
     static const int rgdssbin = 25;
     static const int distdssbin = 50;
-    const double Os_pressure = 0.0149;
+    const double Os_pressure = 0.02896; 
+    /*
+     * 0kT   = 0.00000
+     * 1kT   = 0.00767
+     * 2kT   = 0.01490
+     * 2.5kT = 0.01845
+     * 3kT   = 0.02198
+     * 4kT   = 0.02896
+     */
     std::vector<std::vector<int>> nlist;
     int R, n_rows, n_cols;
     double dx1, dx2;

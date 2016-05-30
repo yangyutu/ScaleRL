@@ -19,15 +19,21 @@ void RLST(char* filename2, int polygon);
 void QuenchMT(int thread);
 
 int main(int argc, char* argv[]) {
-    if ( argc == 2){
+    if (argc == 1){
+        std::cout << "Single Thread Quench Simulation is starting.." << std::endl;
+        Quench("traj/",3,1);
+    }else if ( argc == 2){
 	int thread = boost::lexical_cast<int>(argv[1]);
-	QuenchMT(thread);
+	std::cout << thread << " Thread Quench Simulation is starting.." << std::endl;
+        QuenchMT(thread);
     } else if ( argc == 3) {
 	int polygon = boost::lexical_cast<int>(argv[2]);
-	RLST(argv[1],polygon);
+	std::cout << "Single Thread Reinforcement Learning Simulation is starting.." << std::endl;
+        RLST(argv[1],polygon);
     } else if ( argc == 4) {
         int thread = boost::lexical_cast<int>(argv[2]);
 	int polygon = boost::lexical_cast<int>(argv[3]);
+        std::cout << thread << " Thread Reinforcement Learning Simulation is starting.." << std::endl;
         RLMT(argv[1],thread,polygon);
     } else { 
         std::cout << "Argument number was not recognized" << std::endl;
@@ -36,7 +42,7 @@ int main(int argc, char* argv[]) {
 }
 
 void Quench(std::string filename, int polygon, int thread_idx){
-    int cycle(10), second(1000);
+    int cycle(1), second(100);
     std::shared_ptr<BaseModel> model(new Model_QuadrupoleMC(filename,1,polygon));
     int iter;
     for (int i = 0; i < cycle; i++) {
@@ -46,8 +52,9 @@ void Quench(std::string filename, int polygon, int thread_idx){
         while (iter < second && !model->terminate()) {
             model->run(3);
             iter++;
+//            std::cout << iter++ << std::endl;
         }
-    std::cout << "Thread " << thread_idx+1 << " cycle " << i+1 << "completed" << std::endl;
+    std::cout << "Thread " << thread_idx+1 << " cycle " << i+1 << " completed" << std::endl;
     }
 }
 
@@ -58,7 +65,7 @@ void QuenchMT(int nthreads){
     for (int thread_idx = 0; thread_idx < num_threads; thread_idx++){
         std::stringstream ss;
         ss << thread_idx;
-        threads[thread_idx] = std::thread(Quench, "traj/" + ss.str(), 4, thread_idx);    
+        threads[thread_idx] = std::thread(Quench, "traj/" + ss.str(), 6, thread_idx);    
     }
     
     for (int thread_idx = 0; thread_idx < num_threads; thread_idx++){
