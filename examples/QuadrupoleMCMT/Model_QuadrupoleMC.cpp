@@ -195,8 +195,12 @@ void Model_QuadrupoleMC::MonteCarlo(){
 /* Test overlapping of particles that are in the 8 zones around
  * the location of new particle i location */
         bool OverLapCheck = false;
-        for (int ii = -5; ii <= 5; ii++){
-            for (int jj = -5; jj <= 5; jj++){
+        for (int ii = -1; ii <= 1; ii++){
+            for (int jj = -1; jj <= 1; jj++){
+                if ( DiscretizedRNew[0]+ii < 0 ||
+                        DiscretizedRNew[1]+jj < 0 ||
+                        DiscretizedRNew[0]+ii >= IndexR ||
+                        DiscretizedRNew[1]+jj >= IndexR){continue;}
                 for (int kk = 0; kk < IndexMap(DiscretizedRNew[0]+ii,DiscretizedRNew[1]+jj).size();kk++){
                     Index = IndexMap(DiscretizedRNew[0]+ii,DiscretizedRNew[1]+jj).at(kk);
                     double tempdist;

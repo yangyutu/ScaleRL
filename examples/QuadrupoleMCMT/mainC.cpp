@@ -52,7 +52,7 @@ void Quench(std::string filename, int polygon, int thread_idx){
         while (iter < second && !model->terminate()) {
             model->run(3);
             iter++;
-//            std::cout << iter++ << std::endl;
+            std::cout << iter << std::endl;
         }
     std::cout << "Thread " << thread_idx+1 << " cycle " << i+1 << " completed" << std::endl;
     }
@@ -65,7 +65,7 @@ void QuenchMT(int nthreads){
     for (int thread_idx = 0; thread_idx < num_threads; thread_idx++){
         std::stringstream ss;
         ss << thread_idx;
-        threads[thread_idx] = std::thread(Quench, "traj/" + ss.str(), 6, thread_idx);    
+        threads[thread_idx] = std::thread(Quench, "traj/" + ss.str(), 3, thread_idx);    
     }
     
     for (int thread_idx = 0; thread_idx < num_threads; thread_idx++){

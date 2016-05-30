@@ -5,7 +5,6 @@
       <df name="StartMeshgridFolder">
       </df>
       <df name="traj">
-        <in>TrajAna.m</in>
       </df>
       <in>Model_QuadrupoleMC.cpp</in>
       <in>Model_QuadrupoleMC.h</in>
@@ -43,7 +42,7 @@
         </gdb_signals>
         <gdb_options>
           <DebugOptions>
-            <option name="debug_command" value="./test 1"/>
+            <option name="debug_command" value="./test"/>
           </DebugOptions>
         </gdb_options>
         <gdb_buildfirst gdb_buildfirst_overriden="false" gdb_buildfirst_old="false"/>
