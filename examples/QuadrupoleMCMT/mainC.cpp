@@ -16,27 +16,35 @@ using namespace ReinforcementLearning;
 void Quench(std::string filename, int polygon, int thread_idx);
 void RLMT(char* filename2, int thread, int polygon);
 void RLST(char* filename2, int polygon);
-void QuenchMT(int thread);
+void QuenchMT(int thread,int polygon);
 
 int main(int argc, char* argv[]) {
-    if (argc == 1){
-        std::cout << "Single Thread Quench Simulation is starting.." << std::endl;
-        Quench("traj/",3,1);
-    }else if ( argc == 2){
+/* The run command is of the form:
+*  test polygon_number:	Quench of single thread polygon of edge number as polygon_number;
+*  test thread_number polygon_number: Quench of multi-thread (thread_number) polygon of edge number as polygon_number;
+*  test qsolver.prototxt polygon_number: Reinforcement learning of single thread polygon of edge number as polygon_number;
+*  test qsolver.prototxt thread_number polygon_number: Reinforcement learning of multi-thread (thread_number) polygon of edge number as polygon_number;
+*/
+    if (argc == 2){
+	int polygon = boost::lexical_cast<int>(argv[1]);
+	int thread = 1;
+        std::cout << thread << " Thread Quench Simulation of "<< polygon << " polygon is starting.." << std::endl;
+        Quench("traj/",polygon,thread);
+    }else if ( argc == 3){
 	int thread = boost::lexical_cast<int>(argv[1]);
-	std::cout << thread << " Thread Quench Simulation is starting.." << std::endl;
-        QuenchMT(thread);
-    } else if ( argc == 3) {
 	int polygon = boost::lexical_cast<int>(argv[2]);
-	std::cout << "Single Thread Reinforcement Learning Simulation is starting.." << std::endl;
-        RLST(argv[1],polygon);
+	std::cout << thread << " Thread Quench Simulation of "<< polygon << " polygon is starting.." << std::endl;
+        QuenchMT(thread,polygon);
+//	int polygon = boost::lexical_cast<int>(argv[2]);
+//	std::cout << "Single Thread Reinforcement Learning Simulation of "<< polygon << " polygon is starting.." << std::endl;
+//        RLST(argv[1],polygon);
     } else if ( argc == 4) {
         int thread = boost::lexical_cast<int>(argv[2]);
 	int polygon = boost::lexical_cast<int>(argv[3]);
-        std::cout << thread << " Thread Reinforcement Learning Simulation is starting.." << std::endl;
+        std::cout << thread << " Thread Reinforcement Learning Simulation of "<< polygon << " polygon is starting.." << std::endl;
         RLMT(argv[1],thread,polygon);
     } else { 
-        std::cout << "Argument number was not recognized" << std::endl;
+        std::cout << "Wrong argument number" << std::endl;
     }
     return 0;
 }
@@ -52,27 +60,24 @@ void Quench(std::string filename, int polygon, int thread_idx){
         while (iter < second && !model->terminate()) {
             model->run(3);
             iter++;
-            std::cout << iter << std::endl;
+//            std::cout << iter << std::endl;
         }
-    std::cout << "Thread " << thread_idx+1 << " cycle " << i+1 << " completed" << std::endl;
+    	std::cout << "Thread " << thread_idx+1 << " cycle " << i+1 << " completed" << std::endl;
     }
 }
 
-void QuenchMT(int nthreads){
+void QuenchMT(int nthreads, int polygon){
     int num_threads = nthreads;
-     std::thread *threads = new std::thread[num_threads];
-    std::cout << "There are " << num_threads << " threads"<< std::endl;
+    std::thread *threads = new std::thread[num_threads];
     for (int thread_idx = 0; thread_idx < num_threads; thread_idx++){
         std::stringstream ss;
         ss << thread_idx;
-        threads[thread_idx] = std::thread(Quench, "traj/" + ss.str(), 3, thread_idx);    
+        threads[thread_idx] = std::thread(Quench, "traj/" + ss.str(), polygon, thread_idx);    
     }
-    
     for (int thread_idx = 0; thread_idx < num_threads; thread_idx++){
         threads[thread_idx].join();   
-    } 
-    
-     delete[] threads;
+    }
+    delete[] threads;
 }
 
 void RLST(char* filename2, int polygon){
@@ -89,7 +94,6 @@ void RLST(char* filename2, int polygon){
     double dx2 = 1.0/5.0;
     double minx1 = 0.0;
     double minx2 = 0.0;
-    std::cout << "Starting a single thread RL simulation" << std::endl;
     std::shared_ptr<BaseModel> model(new Model_QuadrupoleMC("traj/control",Resolution,polygon));
     RLSolver_2DTable rlSolver(model, 2, message3, n_rows, n_cols, dx1, dx2, minx1, minx2);
 //    rlSolver.loadQTable("QTableFinal");
@@ -113,15 +117,12 @@ void RLMT(char* filename2, int thread, int polygon){
     double minx1 = 0.0;
     double minx2 = 0.0;
     int num_threads = thread;
-    std::cout << "Starting a " << thread << " thread RL simulation" << std::endl;
     std::vector<std::shared_ptr<BaseModel>> models;
     for (int i = 0; i < num_threads; i++){
         std::stringstream ss;
         ss << i;
         models.push_back(std::shared_ptr<BaseModel>(new Model_QuadrupoleMC("traj/thread" + ss.str() + "control", Resolution, polygon)));
     }
-    
-    
     RLSolver_2DTableMT rlSolver(models, 2, message3, n_rows, n_cols, dx1, dx2, minx1, minx2,num_threads);
     rlSolver.getQTable().slice(3).fill(1);
 //    rlSolver.loadQTable("./QTableFile/QTableFinal");

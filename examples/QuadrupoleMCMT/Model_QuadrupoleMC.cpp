@@ -73,8 +73,8 @@ void Model_QuadrupoleMC::InitializeIndexMap(){
     }
     IndexMap.set_size(IndexR,IndexR);
     for (int i = 0; i < np; i++){
-        DiscretizedR[i][0] = ceil(r[i*3+0]/(60/IndexR)) + IndexR/2;
-        DiscretizedR[i][1] = ceil(r[i*3+1]/(60/IndexR)) + IndexR/2;
+        DiscretizedR[i][0] = floor(r[i*3+0]/(60/IndexR) + IndexR/2);
+        DiscretizedR[i][1] = floor(r[i*3+1]/(60/IndexR) + IndexR/2);
         IndexMap(DiscretizedR[i][0],DiscretizedR[i][1]).push_back(i);
     }
 }
@@ -115,7 +115,7 @@ double Model_QuadrupoleMC::getRewards() {
     }
 }
 bool Model_QuadrupoleMC::terminate() {
-    if (currState[0] > 0.95) {return true;}
+    if (currState[0] > 0.99) {return true;}
     return false;
 }
 void Model_QuadrupoleMC::readxyz(const std::string filename) {
@@ -142,6 +142,9 @@ void Model_QuadrupoleMC::runHelper(int nstep, int controlOpt) {
     else {lambda = 1;}
     for (int step = 0; step < nstep; step++) {
         this->MonteCarlo();
+        if (step%1000 == 0){
+            InitializeIndexMap();
+        }
     }
     this->calOp();
 }
@@ -190,17 +193,16 @@ void Model_QuadrupoleMC::MonteCarlo(){
             Edge.at(i*2*polygon+kk*2+1) = r[i*3+1]+a*sin(r[i*3+2]-0.5*pi+(kk)*Angle*pi);                
         }        
 // Record new zone info into temp DiscretizedRNew
-        DiscretizedRNew[0] = ceil(r[i*3+0]/(60/IndexR)) + IndexR/2;
-        DiscretizedRNew[1] = ceil(r[i*3+1]/(60/IndexR)) + IndexR/2;
-/* Test overlapping of particles that are in the 8 zones around
+        DiscretizedRNew[0] = floor(r[i*3+0]/(60/IndexR) + IndexR/2);
+        DiscretizedRNew[1] = floor(r[i*3+1]/(60/IndexR) + IndexR/2);
+        /* Test overlapping of particles that are in the 8 zones around
  * the location of new particle i location */
+//        std::cout <<"checking overlap for particle " << i << std::endl;
         bool OverLapCheck = false;
-        for (int ii = -1; ii <= 1; ii++){
-            for (int jj = -1; jj <= 1; jj++){
-                if ( DiscretizedRNew[0]+ii < 0 ||
-                        DiscretizedRNew[1]+jj < 0 ||
-                        DiscretizedRNew[0]+ii >= IndexR ||
-                        DiscretizedRNew[1]+jj >= IndexR){continue;}
+        for (int ii = -4; ii <= 4; ii++){
+            if (DiscretizedRNew[0]+ii < 0 ||DiscretizedRNew[0]+ii >= IndexR ){continue;}
+            for (int jj = -4; jj <= 4; jj++){
+                if ( DiscretizedRNew[1]+jj < 0 ||DiscretizedRNew[1]+jj >= IndexR){continue;}
                 for (int kk = 0; kk < IndexMap(DiscretizedRNew[0]+ii,DiscretizedRNew[1]+jj).size();kk++){
                     Index = IndexMap(DiscretizedRNew[0]+ii,DiscretizedRNew[1]+jj).at(kk);
                     double tempdist;
@@ -210,7 +212,7 @@ void Model_QuadrupoleMC::MonteCarlo(){
                         if (tempdist < 2*a){
                             OverLapCheck = true;
                         }
-                        else if (this->CheckOverlap(i,Index) == true){
+                        if (this->CheckOverlap(i,Index) == true){
                             OverLapCheck = true;
                         }
                     }
@@ -219,6 +221,19 @@ void Model_QuadrupoleMC::MonteCarlo(){
                 }
             }
         }
+//        for (int ii = 0; ii < np; ii++){
+//            if (ii != i){
+//                double tempdist;
+//                tempdist =sqrt((r[ii*3] - r[i*3])*(r[ii*3] - r[i*3]) + 
+//                    (r[ii*3+1] - r[i*3+1])*(r[ii*3+1] - r[i*3+1]));    
+//                if (tempdist < 2*a){
+//                    OverLapCheck = true;
+//                }
+//                else if (this->CheckOverlap(i,ii) == true){
+//                    OverLapCheck = true;
+//                }                
+//            }
+//        }
 // If no overlap, accept the move at the ratio of Boltzmann distribution        
        bool move = true;
        double PotentialDiff = (r[i*3+0]*r[i*3+0] + r[i*3+1]*r[i*3+1]) - (TempR[0]*TempR[0] + TempR[1]*TempR[1]);
@@ -231,12 +246,14 @@ void Model_QuadrupoleMC::MonteCarlo(){
                move = false;
            }
        }
+//       std::cout <<"OverLapCheck = " << OverLapCheck << ", move = " << move << std::endl;
 // If no overlap, this movement is allowed; update IndexMap and DiscretizedR 
         if (OverLapCheck == false && move == true){
             IndexMap(DiscretizedRNew[0],DiscretizedRNew[1]).push_back(IndexMap(DiscretizedR[i][0],DiscretizedR[i][1]).at(0));
             IndexMap(DiscretizedR[i][0],DiscretizedR[i][1]).erase(IndexMap(DiscretizedR[i][0],DiscretizedR[i][1]).begin());
             DiscretizedR[i][0] = DiscretizedRNew[0];
             DiscretizedR[i][1] = DiscretizedRNew[1];
+//            std::cout << "Move a step!" << std::endl;
         }
 // If overlap, this movement is not allowed; restore r matrix and Edge matrix
         else{
@@ -247,6 +264,7 @@ void Model_QuadrupoleMC::MonteCarlo(){
                 Edge.at(i*2*polygon+kk*2+0) = TempEdge.at(kk*2+0);
                 Edge.at(i*2*polygon+kk*2+1) = TempEdge.at(kk*2+1);
             }
+//            std::cout << "Keep stay!" << std::endl;
         }
         TempEdge.clear();
     }
@@ -292,7 +310,7 @@ void Model_QuadrupoleMC::calOp() {
     double rxij, ryij, psir[np], psii[np], scale;
     double rgmean, xmean, ymean, accumpsi6r, accumpsi6i;
     
-    if (polygon == 3) {scale = 3.0;} 
+    if (polygon == 3) {scale = 6.0;} 
     else if (polygon == 4){scale = 4.0;} 
     else if (polygon == 6){scale = 6.0;} 
     else {scale = 1.0;}
@@ -351,3 +369,23 @@ void Model_QuadrupoleMC::calOp() {
     rg = sqrt(rgmean);
     rg = 1.0 - (rg - 6.0)/24.0;
 }
+
+//void Model_QuadrupoleMC::PlotIndex(){
+  //  std::ofstream os;
+  //  if (!os.is_open()){
+  //      os.open("./traj/Index.dat");
+  //  }
+//    os << "new:" << std::endl;
+//    for (int i = 0; i < 60; i++){
+//        for (int j = 0; j < 60; j++){
+//            int CurrSize = IndexMap(i,j).size();
+//            if (CurrSize != 0){
+//                os << "(" << i << ", " << j << ") has " << CurrSize << " particles: ";
+//                for (int k = 0; k < CurrSize; k++){
+  //                  os << "\t" << IndexMap(i,j).at(k);
+  //              }
+  //              os << std::endl;
+  //          }
+  //      }
+//    }
+//}

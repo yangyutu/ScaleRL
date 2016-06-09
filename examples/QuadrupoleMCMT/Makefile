@@ -21,4 +21,4 @@ RLSolver_2DTableMT.o: RLSolver_2DTableMT.cpp
 	$(CXX) -c $(CXXFLAGS) $^
 
 clean:   
-	rm -f core* test test_static *.o *.il
+	rm -f core* test test_static *.o *.il *~

@@ -5,8 +5,6 @@
       <df name="StartMeshgridFolder">
       </df>
       <df name="traj">
-        <in>OsmoticPressureCalc.m</in>
-        <in>trajana.m</in>
       </df>
       <in>Model_QuadrupoleBD.cpp</in>
       <in>Model_QuadrupoleBD.h</in>

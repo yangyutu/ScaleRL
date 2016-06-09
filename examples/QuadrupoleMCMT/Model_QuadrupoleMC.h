@@ -22,7 +22,7 @@ public:
 protected:
     static const int np = 300;
     static const int np3 = 900;
-    static const int IndexR = 20;
+    static const int IndexR = 60;
     const double pi = 3.1415925025939941;
     std::vector<double> RCheck, Edge;
     arma::field<std::vector<int> > IndexMap;
