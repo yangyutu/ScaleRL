@@ -2,12 +2,12 @@
 
 using namespace ReinforcementLearning;
 
-Model_QuadrupoleMC::Model_QuadrupoleMC(std::string filetag0,int R, int polygon0) {
+Model_QuadrupoleMC::Model_QuadrupoleMC(std::string filetag0,int Resolution, int polygon0) {
     filetag = filetag0;
-    polygon = polygon0;
+    polygonnum = polygon0;
     DiffTrans = 6.362e-5;
     DiffRot = 4.772e-5;
-    Angle = 2.0/polygon;
+    Angle = 2.0/polygonnum;
     rmin = 2.2;
     nstep = 10000;
     dt = 1000.0/nstep;
@@ -19,26 +19,14 @@ Model_QuadrupoleMC::Model_QuadrupoleMC(std::string filetag0,int R, int polygon0)
     rand_normal = std::make_shared<std::normal_distribution<double>>(0.0, 1.0);
     rand_uniform = std::uniform_real_distribution<double> (0, 1);
     // 1 is the length from center to corner
-    a = sin(0.5*pi-pi/polygon); // the length from center to edge
-    EdgeLength = a*tan(pi/polygon); // the length of half of edge
-    n_rows = R;
-    n_cols = R;
-    dx1 = 1.0/R;
-    dx2 = 1.0/R;
+    a = sin(0.5*pi-pi/polygonnum); // the length from center to edge
+    EdgeLength = a*tan(pi/polygonnum); // the length of half of edge
+    n_rows = Resolution;
+    n_cols = Resolution;
+    dx1 = 1.0/Resolution;
+    dx2 = 1.0/Resolution;
 }
 
-
-void Model_QuadrupoleMC::run(int action) {
-/* Takes in the control option and run the dynamics for 1s*/
-    this->opt = action;
-    this->outputTrajectory(this->trajOs);
-    this->outputOrderParameter(this->opOs);
-    this->runHelper(nstep,opt);
-    this->prevState = this->currState;
-    this->currState[0] = psi6;
-    this->currState[1] = rg;
-    this->timeCounter++;
-}
 void Model_QuadrupoleMC::createInitialState() {
     std::stringstream FileStr;
     FileStr << this->fileCounter;
@@ -51,11 +39,22 @@ void Model_QuadrupoleMC::createInitialState() {
     this->trajOs.open(filetag + "xyz_" + ss.str() + ".dat");
     this->opOs.open(filetag + "op" + ss.str() + ".dat");
     this->timeCounter = 0;
-    Edge.clear();
-    this->InitializeEdge();
+    std::vector<int> temp;
+    std::vector<std::vector<int>> second;
+    for (int i = 0; i < IndexR; i++){
+        second.push_back(temp);
+    }
+    for (int i = 0; i < IndexR; i++){
+        IndexMatrix.push_back(second);
+    }
+
+    for (int i = 0; i < np; i++){
+        UpdateEdge(i);
+        UpdateIndex(i);
+    }
     for (int i = 0; i < np - 1; i++){
         for (int j = i+1; j < np; j++){
-            if(this->CheckOverlap(i,j) == true){
+            if(this->CheckOverlap(Polygon[i],Polygon[j]) == true){
                 std::cout << "Initial State Overlaps Between Particle " 
                         << i+1 << " and " << j+1<< std::endl;
                 exit(2);
@@ -63,37 +62,49 @@ void Model_QuadrupoleMC::createInitialState() {
         }
     }
     this->runHelper(0,3);
-    this->InitializeIndexMap();
     this->currState[0] = psi6;
     this->currState[1] = rg;
 }
-void Model_QuadrupoleMC::InitializeIndexMap(){
-    if (!IndexMap.empty()){
-        IndexMap.clear();
+
+void Model_QuadrupoleMC::readxyz(const std::string filename) {
+    std::ifstream is;
+    is.open(filename.c_str());
+    std::string line;
+    double dum;
+    for (int i = 0; i < np; i++) {
+        getline(is, line);
+        std::stringstream linestream(line);
+        linestream >> dum;
+        linestream >> Polygon[i].center.x;
+        linestream >> Polygon[i].center.y;
+//        linestream >> dum;
+        linestream >> Polygon[i].rot;
     }
-    IndexMap.set_size(IndexR,IndexR);
-    for (int i = 0; i < np; i++){
-        DiscretizedR[i][0] = floor(r[i*3+0]/(60/IndexR) + IndexR/2);
-        DiscretizedR[i][1] = floor(r[i*3+1]/(60/IndexR) + IndexR/2);
-        IndexMap(DiscretizedR[i][0],DiscretizedR[i][1]).push_back(i);
-    }
+    is.close();
 }
-void Model_QuadrupoleMC::InitializeEdge(){
-    for (int i = 0; i < np; i++){
-        for (int j = 0; j < polygon; j++){
-// Edge is the coordinate of the center of each each edge
-            Edge.push_back(r[i*3] + a*cos(r[i*3+2] - 0.5*pi + j*Angle*pi));
-            Edge.push_back(r[i*3+1] + a*sin(r[i*3+2] - 0.5*pi + j*Angle*pi));
-        }
-    }
+
+void Model_QuadrupoleMC::UpdateEdge(int i){
+        Polygon[i].edge1.x = Polygon[i].center.x + a*cos(Polygon[i].rot-pi/2);
+        Polygon[i].edge1.y = Polygon[i].center.y + a*sin(Polygon[i].rot-pi/2);
+        Polygon[i].edge2.x = Polygon[i].center.x + a*cos(Polygon[i].rot-pi/2+Angle*pi);
+        Polygon[i].edge2.y = Polygon[i].center.y + a*sin(Polygon[i].rot-pi/2+Angle*pi);
+        Polygon[i].edge3.x = Polygon[i].center.x + a*cos(Polygon[i].rot-pi/2+2*Angle*pi);
+        Polygon[i].edge3.y = Polygon[i].center.y + a*sin(Polygon[i].rot-pi/2+2*Angle*pi);
 }
+
+void Model_QuadrupoleMC::UpdateIndex(int i){
+    Polygon[i].DisLoc.x = floor(Polygon[i].center.x/(60/IndexR) + IndexR/2);
+    Polygon[i].DisLoc.y = floor(Polygon[i].center.y/(60/IndexR) + IndexR/2);
+    IndexMatrix[Polygon[i].DisLoc.x][Polygon[i].DisLoc.y].push_back(i);
+}
+
 void Model_QuadrupoleMC::outputTrajectory(std::ostream& os) {
 
     for (int i = 0; i < np; i++) {
         os << i << "\t";
-        os << r[3 * i] << "\t";
-        os << r[3 * i + 1] << "\t";
-        os << r[3 * i + 2]<< "\t";
+        os << Polygon[i].center.x << "\t";
+        os << Polygon[i].center.y << "\t";
+        os << Polygon[i].rot<< "\t";
         os << std::endl;
     }
 }
@@ -118,36 +129,45 @@ bool Model_QuadrupoleMC::terminate() {
     if (currState[0] > 0.99) {return true;}
     return false;
 }
-void Model_QuadrupoleMC::readxyz(const std::string filename) {
-    std::ifstream is;
-    is.open(filename.c_str());
-    std::string line;
-    double dum;
-    for (int i = 0; i < np; i++) {
-        getline(is, line);
-        std::stringstream linestream(line);
-        linestream >> dum;
-        linestream >> r[3 * i];
-        linestream >> r[3 * i + 1];
-//        linestream >> dum;
-        linestream >> r[3 * i + 2];
-    }
-    is.close();
+
+void Model_QuadrupoleMC::run(int action) {
+/* Takes in the control option and run the dynamics for 1s*/
+    this->opt = action;
+    this->outputTrajectory(this->trajOs);
+    this->outputOrderParameter(this->opOs);
+    this->runHelper(nstep,opt);
+    this->prevState = this->currState;
+    this->currState[0] = psi6;
+    this->currState[1] = rg;
+    this->timeCounter++;
 }
+
 void Model_QuadrupoleMC::runHelper(int nstep, int controlOpt) {
 // Covert control option to lambda and run MC simulation for 1s in 1e5 steps
-    if (controlOpt == 0) {lambda = 0.1;}
-    else if (controlOpt == 1) {lambda = 0.2;}
-    else if (controlOpt == 2) {lambda = 0.3;}
-    else {lambda = 1;}
+    switch (controlOpt)
+    {
+        case 0:
+            lambda = 0.1;
+            break;
+        case 1:
+            lambda = 0.2;
+            break;
+        case 2:
+            lambda = 0.3;
+            break;
+        case 3:
+            lambda = 1;
+            break;
+        default:
+            lambda = 1;
+            break;
+    }
     for (int step = 0; step < nstep; step++) {
         this->MonteCarlo();
-        if (step%1000 == 0){
-            InitializeIndexMap();
-        }
     }
     this->calOp();
 }
+
 void Model_QuadrupoleMC::MonteCarlo(){
 /* Use MC method to simulate the trajectory of particles for 1s.
  * The idea is to update the location and motion of each particle 
@@ -157,14 +177,12 @@ void Model_QuadrupoleMC::MonteCarlo(){
  * other particles, then the movement is kept; otherwise, this
  * movement is discarded, and this particle is considered to stay
  * still for this 0.1ms*/
-    int DiscretizedRNew[2],Index;
-    double Driftx, Drifty, RandDriftx, RandDrifty, RandRot, TempR[3];
-    std::vector<double> TempEdge;
+    double Driftx, Drifty, RandDriftx, RandDrifty, RandRot;
 // Calculate the movement of each particle (i) in 0.1ms
     for (int i = 0; i < np; i++){
 // The velocity of each particle (translational and rotational)
-        Driftx = -r[3*i]*lambda*dt*DiffTrans;
-        Drifty = -r[3*i+1]*lambda*dt*DiffTrans;
+        Driftx = -Polygon[i].center.x*lambda*dt*DiffTrans;
+        Drifty = -Polygon[i].center.y*lambda*dt*DiffTrans;
         RandDriftx = (*rand_normal)(rand_generator);
         RandDrifty = (*rand_normal)(rand_generator);
         RandRot = (*rand_normal)(rand_generator);
@@ -173,120 +191,100 @@ void Model_QuadrupoleMC::MonteCarlo(){
  * overlapping, these two data are directly replaced; other data
  * including zone information and record of zone particles are 
  * kept unchanged*/
-// Record the old location of particle i as TempR
-        TempR[0] = r[i*3+0];
-        TempR[1] = r[i*3+1];
-        TempR[2] = r[3*i+2];
-// Update the new location into location matrix r
-        r[i*3+0] = r[i*3+0] + Driftx + RandDriftx*sqrt(DiffTrans*2.0*dt);
-        r[i*3+1] = r[i*3+1] + Drifty + RandDrifty*sqrt(DiffTrans*2.0*dt);
-        r[i*3+2] = r[i*3+2] + RandRot*sqrt(DiffRot*2.0*dt);
-        
-// Record the old edge as TempEdge
-        for (int kk = 0; kk < polygon; kk++){
-            TempEdge.push_back(Edge.at(i*2*polygon+kk*2+0));
-            TempEdge.push_back(Edge.at(i*2*polygon+kk*2+1));                
-        }
-// Update the new edge into edge matrix
-        for (int kk = 0; kk < polygon; kk++){
-            Edge.at(i*2*polygon+kk*2+0) = r[i*3+0]+a*cos(r[i*3+2]-0.5*pi+(kk)*Angle*pi);
-            Edge.at(i*2*polygon+kk*2+1) = r[i*3+1]+a*sin(r[i*3+2]-0.5*pi+(kk)*Angle*pi);                
-        }        
-// Record new zone info into temp DiscretizedRNew
-        DiscretizedRNew[0] = floor(r[i*3+0]/(60/IndexR) + IndexR/2);
-        DiscretizedRNew[1] = floor(r[i*3+1]/(60/IndexR) + IndexR/2);
-        /* Test overlapping of particles that are in the 8 zones around
- * the location of new particle i location */
-//        std::cout <<"checking overlap for particle " << i << std::endl;
-        bool OverLapCheck = false;
-        for (int ii = -4; ii <= 4; ii++){
-            if (DiscretizedRNew[0]+ii < 0 ||DiscretizedRNew[0]+ii >= IndexR ){continue;}
-            for (int jj = -4; jj <= 4; jj++){
-                if ( DiscretizedRNew[1]+jj < 0 ||DiscretizedRNew[1]+jj >= IndexR){continue;}
-                for (int kk = 0; kk < IndexMap(DiscretizedRNew[0]+ii,DiscretizedRNew[1]+jj).size();kk++){
-                    Index = IndexMap(DiscretizedRNew[0]+ii,DiscretizedRNew[1]+jj).at(kk);
-                    double tempdist;
-                    if (Index != i){
-                        tempdist =sqrt((r[Index*3] - r[i*3])*(r[Index*3] - r[i*3]) + 
-                            (r[Index*3+1] - r[i*3+1])*(r[Index*3+1] - r[i*3+1]));    
-                        if (tempdist < 2*a){
-                            OverLapCheck = true;
-                        }
-                        if (this->CheckOverlap(i,Index) == true){
-                            OverLapCheck = true;
-                        }
-                    }
-                    
-                    
-                }
-            }
-        }
-//        for (int ii = 0; ii < np; ii++){
-//            if (ii != i){
-//                double tempdist;
-//                tempdist =sqrt((r[ii*3] - r[i*3])*(r[ii*3] - r[i*3]) + 
-//                    (r[ii*3+1] - r[i*3+1])*(r[ii*3+1] - r[i*3+1]));    
+// Store old structure in TempPolygon
+        particle TempPolygon = Polygon[i];
+// Update new structure in Polygon
+//        Polygon[i].center.x += Driftx + RandDriftx*sqrt(DiffTrans*2.0*dt);
+//        Polygon[i].center.y += Drifty + RandDrifty*sqrt(DiffTrans*2.0*dt);
+        Polygon[i].center.x += Driftx;
+        Polygon[i].center.y += Drifty;
+        Polygon[i].rot += RandRot*sqrt(DiffRot*2.0*dt);
+        UpdateEdge(i);
+        Polygon[i].DisLoc.x = floor(Polygon[i].center.x/(60/IndexR) + IndexR/2);
+        Polygon[i].DisLoc.y = floor(Polygon[i].center.y/(60/IndexR) + IndexR/2);
+        bool OverLap = false;
+        bool move = true;
+//        for (int j = 0; j < np; j++){
+//            if (j != i && pow((Polygon[j].DisLoc.x-Polygon[i].DisLoc.x),2.0) < 16 && pow((Polygon[j].DisLoc.y-Polygon[i].DisLoc.y),2.0) < 16 ){
+//                double tempdist = sqrt(pow((Polygon[j].center.x - Polygon[i].center.x ),2.0) + 
+//                       pow((Polygon[j].center.y - Polygon[i].center.y),2.0));   
 //                if (tempdist < 2*a){
-//                    OverLapCheck = true;
+//                    OverLap = true;
 //                }
-//                else if (this->CheckOverlap(i,ii) == true){
-//                    OverLapCheck = true;
+//                if (this->CheckOverlap(Polygon[i],Polygon[j]) == true){
+//                    OverLap = true;
 //                }                
 //            }
 //        }
+        for (int ii = -4; ii <= 4; ii++){
+            if (Polygon[i].DisLoc.x+ii < 0 ||Polygon[i].DisLoc.x+ii >= IndexR ){
+                continue;
+            }
+            for (int jj = -4; jj <= 4; jj++){
+                if ( Polygon[i].DisLoc.y +jj < 0 ||Polygon[i].DisLoc.y >= IndexR){
+                    continue;
+                }
+//                for (std::vector<int>::iterator kk = IndexMatrix[Polygon[i].DisLoc.x+ii][Polygon[i].DisLoc.y+jj].begin(); 
+//                        kk != IndexMatrix[Polygon[i].DisLoc.x+ii][Polygon[i].DisLoc.y+jj].end(); ++kk){
+                for (int kk = 0; kk < IndexMatrix[Polygon[i].DisLoc.x+ii][Polygon[i].DisLoc.y+jj].size(); kk++){
+//                    int j = *kk;
+                    int j = IndexMatrix[Polygon[i].DisLoc.x+ii][Polygon[i].DisLoc.y+jj].at(kk);
+                    double tempdist;
+                    if (j != i){
+                        tempdist = sqrt(pow((Polygon[j].center.x - Polygon[i].center.x ),2.0) + 
+                               pow((Polygon[j].center.y - Polygon[i].center.y),2.0));   
+                        if (tempdist < 2*a){
+                            OverLap = true;
+                        }
+                        if (this->CheckOverlap(Polygon[i],Polygon[j]) == true){
+                            OverLap = true;
+                        }
+                    }
+                }
+            }
+        }
 // If no overlap, accept the move at the ratio of Boltzmann distribution        
-       bool move = true;
-       double PotentialDiff = (r[i*3+0]*r[i*3+0] + r[i*3+1]*r[i*3+1]) - (TempR[0]*TempR[0] + TempR[1]*TempR[1]);
+       double PotentialDiff = (pow(Polygon[i].center.x,2.0) + pow(Polygon[i].center.y,2.0)) 
+       - (pow(TempPolygon.center.x,2.0) + pow(TempPolygon.center.y,2.0));
        if (PotentialDiff > 0){
            double RanGen = rand_uniform(rand_generator);
            double BoltzmannDist = exp(-0.5*lambda*
-           ((r[i*3+0]*r[i*3+0] + r[i*3+1]*r[i*3+1]) - 
-           (TempR[0]*TempR[0] + TempR[1]*TempR[1])));
+           ((pow(Polygon[i].center.x,2.0) + pow(Polygon[i].center.y,2.0)) - 
+           (pow(TempPolygon.center.x,2.0) + pow(TempPolygon.center.y,2.0))));
            if (RanGen >= BoltzmannDist){
                move = false;
            }
        }
-//       std::cout <<"OverLapCheck = " << OverLapCheck << ", move = " << move << std::endl;
-// If no overlap, this movement is allowed; update IndexMap and DiscretizedR 
-        if (OverLapCheck == false && move == true){
-            IndexMap(DiscretizedRNew[0],DiscretizedRNew[1]).push_back(IndexMap(DiscretizedR[i][0],DiscretizedR[i][1]).at(0));
-            IndexMap(DiscretizedR[i][0],DiscretizedR[i][1]).erase(IndexMap(DiscretizedR[i][0],DiscretizedR[i][1]).begin());
-            DiscretizedR[i][0] = DiscretizedRNew[0];
-            DiscretizedR[i][1] = DiscretizedRNew[1];
-//            std::cout << "Move a step!" << std::endl;
+// If no overlap, update IndexMap
+        if (OverLap == false && move == true){
+            IndexMatrix[Polygon[i].DisLoc.x][Polygon[i].DisLoc.y].push_back(i);
+            IndexMatrix[TempPolygon.DisLoc.x][TempPolygon.DisLoc.y].erase(IndexMatrix[TempPolygon.DisLoc.x][TempPolygon.DisLoc.y].begin());            
+        } else {
+            Polygon[i] = TempPolygon;
         }
-// If overlap, this movement is not allowed; restore r matrix and Edge matrix
-        else{
-            r[i*3+0] = TempR[0];
-            r[i*3+1] = TempR[1];
-            r[i*3+2] = TempR[2];
-            for (int kk = 0; kk < polygon; kk++){
-                Edge.at(i*2*polygon+kk*2+0) = TempEdge.at(kk*2+0);
-                Edge.at(i*2*polygon+kk*2+1) = TempEdge.at(kk*2+1);
-            }
-//            std::cout << "Keep stay!" << std::endl;
-        }
-        TempEdge.clear();
     }
 }
-bool Model_QuadrupoleMC::CheckOverlap(int i, int j){
+
+bool Model_QuadrupoleMC::CheckOverlap(particle i, particle j){
 /* check overlap by filling in the indices of two particles needed to be checked;
  * the result is 0 if not overlap and 10 otherwise. The checking requires r matrix and 
  * edge matrix information */
     double DiffEdge1, DiffEdge2, Dist, Det, Det1, Det2, Frac1, Frac2;
-    for (int ii = 0; ii < polygon; ii++){
-        for (int jj = 0; jj < polygon; jj++){
-            DiffEdge1 = Edge.at(j*2*polygon+jj*2+0) - Edge.at(i*2*polygon+ii*2+0);
-            DiffEdge2 = Edge.at(j*2*polygon+jj*2+1) - Edge.at(i*2*polygon+ii*2+1);
+    double Edge1x[3] = {i.edge1.x,i.edge2.x,i.edge3.x};
+    double Edge1y[3] = {i.edge1.y,i.edge2.y,i.edge3.y};
+    double Edge2x[3] = {j.edge1.x,j.edge2.x,j.edge3.x};
+    double Edge2y[3] = {j.edge1.y,j.edge2.y,j.edge3.y};
+    for (int ii = 0; ii < polygonnum; ii++){
+        for (int jj = 0; jj < polygonnum; jj++){
+            DiffEdge1 = Edge2x[jj] - Edge1x[ii];
+            DiffEdge2 = Edge2y[jj] - Edge1y[ii];
             Dist = sqrt(DiffEdge1*DiffEdge1 + DiffEdge2*DiffEdge2);
-/* First check if the distance between particles are too close; if so no other criteria
- * are needed; otherwise edges needed to be checked */
             if (Dist < 2*EdgeLength){
-                Det = -cos(r[i*3+2]+ii*Angle*pi)*sin(r[j*3+2]+jj*Angle*pi)
-                        + cos(r[j*3+2]+jj*Angle*pi)*sin(r[i*3+2]+ii*Angle*pi);
+                Det = -cos(i.rot+ii*Angle*pi)*sin(j.rot+jj*Angle*pi)
+                        + cos(j.rot+jj*Angle*pi)*sin(i.rot+ii*Angle*pi);
                 if (Det != 0.0){
-                    Det1 = -DiffEdge1*sin(r[j*3+2]+jj*Angle*pi) + DiffEdge2*cos(r[j*3+2]+jj*Angle*pi);
-                    Det2 = DiffEdge2*cos(r[i*3+2]+ii*Angle*pi) - DiffEdge1*sin(r[i*3+2]+ii*Angle*pi); 
+                    Det1 = -DiffEdge1*sin(j.rot+jj*Angle*pi) + DiffEdge2*cos(j.rot+jj*Angle*pi);
+                    Det2 = DiffEdge2*cos(i.rot+ii*Angle*pi) - DiffEdge1*sin(i.rot+ii*Angle*pi); 
                     Frac1 = fabs(Det1/Det);
                     Frac2 = fabs(Det2/Det);
 //                    file << i+1 << "\t" << j+1 <<"\t" << ii+1 << "\t" << jj+1 << "\t"
@@ -310,14 +308,14 @@ void Model_QuadrupoleMC::calOp() {
     double rxij, ryij, psir[np], psii[np], scale;
     double rgmean, xmean, ymean, accumpsi6r, accumpsi6i;
     
-    if (polygon == 3) {scale = 6.0;} 
-    else if (polygon == 4){scale = 4.0;} 
-    else if (polygon == 6){scale = 6.0;} 
+    if (polygonnum == 3) {scale = 6.0;} 
+    else if (polygonnum == 4){scale = 4.0;} 
+    else if (polygonnum == 6){scale = 6.0;} 
     else {scale = 1.0;}
     
     for (int i = 0; i < np; i++) {
-        rx[i] = r[i*3+0];
-        ry[i] = r[i*3+1];
+        rx[i] = Polygon[i].center.x;
+        ry[i] = Polygon[i].center.y;
     }
     for (int i = 0; i < np; i++) {
         nb[i] = 0;
@@ -330,8 +328,8 @@ void Model_QuadrupoleMC::calOp() {
                 double RP = sqrt(rxij * rxij + ryij * ryij);
                 if (RP <= rmin) {
                     nb[i] += 1;
-                    psir[i] += cos(scale * r[j*3+2]);
-                    psii[i] += sin(scale * r[j*3+2]);
+                    psir[i] += cos(scale * Polygon[j].rot);
+                    psii[i] += sin(scale * Polygon[j].rot);
                 }
             }        
         } 
@@ -369,23 +367,3 @@ void Model_QuadrupoleMC::calOp() {
     rg = sqrt(rgmean);
     rg = 1.0 - (rg - 6.0)/24.0;
 }
-
-//void Model_QuadrupoleMC::PlotIndex(){
-  //  std::ofstream os;
-  //  if (!os.is_open()){
-  //      os.open("./traj/Index.dat");
-  //  }
-//    os << "new:" << std::endl;
-//    for (int i = 0; i < 60; i++){
-//        for (int j = 0; j < 60; j++){
-//            int CurrSize = IndexMap(i,j).size();
-//            if (CurrSize != 0){
-//                os << "(" << i << ", " << j << ") has " << CurrSize << " particles: ";
-//                for (int k = 0; k < CurrSize; k++){
-  //                  os << "\t" << IndexMap(i,j).at(k);
-  //              }
-  //              os << std::endl;
-  //          }
-  //      }
-//    }
-//}

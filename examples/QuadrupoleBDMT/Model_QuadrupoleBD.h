@@ -24,7 +24,7 @@ protected:
     static const int np3 = 900;
     static const int rgdssbin = 25;
     static const int distdssbin = 50;
-    const double Os_pressure = 0.02896; 
+    const double Os_pressure = 0.01845; 
     /*
      * 0kT   = 0.00000
      * 1kT   = 0.00767
