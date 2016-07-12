@@ -19,21 +19,22 @@ void Model_QuadrupoleBD::Initializer(std::string filetag0){
     filetag = filetag0;
     //	we have three low dimensional states psi6, c6, rg
     // nstep 10000 correspond to 1s, every run will run 1s
-    nstep = 10000;
-    stateDim = 3;
+    nstep = 10000; //steps simulated in 1s
+    stateDim = 3; // state is composed of Psi6, C6, rg
     currState.resize(stateDim);
     prevState.resize(stateDim);
-    dt = 1000.0/nstep; //s
-    numActions = 4;
-    trajOutputInterval = 1;
+    dt = 0.1;
+//    dt = 1000.0/nstep; //the length of each step in ms 
+    numActions = 4; // number of voltages used
+    trajOutputInterval = 1; // number of seconds between output
     fileCounter = 0;
     rand_normal = std::make_shared<std::normal_distribution<double>>(0.0, 1.0);
     rand_int = std::make_shared<std::uniform_int_distribution<>>(0, 1000);
-    rgbin = 25;
-    rbin = 50;
-    a = 1435.0;
+    rgbin = 25; // size of rg OP discretization
+    rbin = 50; // size of distance discretization
+    a = 1435.0; // radius of particle
     L = 287.0;
-    kb = 1.380658e-23;
+    kb = 1.380658e-23; // Boltzmann constant
 
     for (int i = 0; i < np; i++) {
         nxyz[i][0] = 3 * i;
@@ -42,7 +43,7 @@ void Model_QuadrupoleBD::Initializer(std::string filetag0){
 	nlist.push_back(std::vector<int>());
     }
 }
-void Model_QuadrupoleBD::run(int action) { //每次run 1s的traj
+void Model_QuadrupoleBD::run(int action) { //run an eqivalent of 1s simulation
     this->opt = action;
     if (this->timeCounter == 0 || ((this->timeCounter + 1) % trajOutputInterval == 0)) {
         this->outputTrajectory(this->trajOs);
@@ -65,8 +66,8 @@ void Model_QuadrupoleBD::createInitialState() {
     std::stringstream FileStr;
     FileStr << this->fileCounter;
 //    this->readxyz("./StartMeshgridFolder/startmeshgrid" + FileStr.str() + ".txt");
-    this->readxyz("./StartMeshgridFolder/startmeshgrid1.txt");
-    this->readDiffusivity("2dtabledsslam9.txt");
+    this->readxyz("./Startmeshgrid1.txt");
+    this->readDiffusivity("./2dtabledsslam9.txt");
     std::stringstream ss;
     std::cout << "model initialize at round " << fileCounter << std::endl;
     ss << this->fileCounter++;
@@ -428,7 +429,7 @@ void Model_QuadrupoleBD::calOp() {
     rgmean = 0;
     for (int i = 0; i < np; i++) {
         rgmean = rgmean + (rx[i] - xmean)*(rx[i] - xmean);
-        rgmean = rgmean + (ry[i] - ymean)*(ry[i] - xmean);
+        rgmean = rgmean + (ry[i] - ymean)*(ry[i] - ymean);
     }
     rgmean /= np;
 

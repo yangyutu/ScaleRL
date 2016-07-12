@@ -44,7 +44,9 @@ void RLSolver_2DTableMT::train() {
         }
      }
  
-    for (int thread_idx = 0; thread_idx < num_threads; thread_idx++){threads[thread_idx].join();}
+    for (int thread_idx = 0; thread_idx < num_threads; thread_idx++){
+	threads[thread_idx].join();
+    }
     
     std::cout << "Main thread experience set size: "<< RLSolver_2DTableMT::experienceVec.size() << std::endl;
         

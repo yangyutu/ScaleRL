@@ -8,6 +8,7 @@
 #include <math.h>
 #include <armadillo>
 #include <stdlib.h>
+#include <algorithm>
 
 namespace ReinforcementLearning {  
 class Model_QuadrupoleMC: public Model_QuadrupoleBase{
@@ -35,10 +36,7 @@ protected:
     {
         coord center;
         double rot;
-        coord edge1;
-        coord edge2;
-        coord edge3;
-        coord edge4;
+        std::vector<coord> edge;
         index DisLoc;
     };
     
@@ -49,8 +47,6 @@ protected:
     const double pi = 3.1415925025939941;
 // Variables
     particle Polygon[np];
-    std::vector< std::vector<int> > second;
-    std::vector<std::vector<std::vector<int> > > IndexMatrix;
     int n_rows, n_cols, polygonnum, ppp;
     double dx1, dx2;
     double Angle, EdgeLength, a;
@@ -63,9 +59,11 @@ protected:
     std::ofstream trajOs, opOs;
     std::string filetag;
     std::ofstream file;
-    double psi6, rg, lambda, rmin, dt;
+    double psi6, rg, F, lambda, rmin, rmin2, dt;
     double DiffTrans, DiffRot;
     std::uniform_real_distribution<double> rand_uniform;
+    double LocF[np];
+    int NeighborF[np];
     
     void outputTrajectory(std::ostream& os);
     void outputOrderParameter(std::ostream& os);
@@ -78,7 +76,7 @@ protected:
     void calDss();
     void UpdateIndex(int i);
     double Determinant(double v1, double v2, double v3, double v4);
-    void UpdateEdge(int i);
+    void UpdatePolygon(int i);
 };
 }
 

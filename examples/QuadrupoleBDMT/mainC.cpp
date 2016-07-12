@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
 }
 
 void testCppModel(std::string filename){
-    int cycle(10),second(1000);
+    int cycle(1),second(500);
     std::shared_ptr<BaseModel> model(new Model_QuadrupoleBD(filename));
     int iter;
     for (int i = 0; i < cycle; i++) {

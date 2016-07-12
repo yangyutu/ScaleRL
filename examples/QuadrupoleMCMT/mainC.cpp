@@ -50,14 +50,14 @@ int main(int argc, char* argv[]) {
 }
 
 void Quench(std::string filename, int polygon, int thread_idx){
-    int cycle(1), second(10);
+    int cycle(1), second(1000);
     std::shared_ptr<BaseModel> model(new Model_QuadrupoleMC(filename,1,polygon));
     int iter;
     for (int i = 0; i < cycle; i++) {
         model->createInitialState();
         iter = 0;
-//       while (iter < second) {
-        while (iter < second && !model->terminate()) {
+       while (iter < second) {
+//        while (iter < second && !model->terminate()) {
             model->run(3);
             iter++;
             std::cout << iter << std::endl;
