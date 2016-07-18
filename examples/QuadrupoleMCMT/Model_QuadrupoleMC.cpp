@@ -3,25 +3,26 @@
 using namespace ReinforcementLearning;
 
 Model_QuadrupoleMC::Model_QuadrupoleMC(std::string filetag0,int Resolution, int polygon0) {
-    filetag = filetag0;
-    polygonnum = polygon0;
-    DiffTrans = 6.362e-5;
-    DiffRot = 4.772e-5;
-    Angle = 2.0/polygonnum;
-    rmin = 2.2;
-    rmin2 = 1.5;
-    nstep = 10000;
-    dt = 1000.0/nstep;
-    stateDim = 3;
+    filetag = filetag0;     // Path of output files
+    polygonnum = polygon0;  // Number of polygon edges
+    DiffTrans = 6.362e-5;   // Diffusivity of translational motion
+    DiffRot = 4.772e-5;     // Diffusivity of rotational motion
+    Angle = 2.0/polygonnum; // Degree of symmetry
+    nstep = 10000;          // Number of steps recurse in each time intervial (1s)
+    dt = 1000.0/nstep;      // Time of each step recursed (1ms)
+    stateDim = 4;           // State of polygon configuration in Ps6, Rg, F
     currState.resize(stateDim);
     prevState.resize(stateDim);
-    numActions = 4;
-    fileCounter = 0;
+    numActions = 4;         // Number of voltages used
+    fileCounter = 0;        // Cycle number in each thread
     rand_normal = std::make_shared<std::normal_distribution<double>>(0.0, 1.0);
     rand_uniform = std::uniform_real_distribution<double> (0, 1);
     // 1 is the length from center to corner
-    a = sin(0.5*pi-pi/polygonnum); // the length from center to middle of edge
-    EdgeLength = a*tan(pi/polygonnum); // the length of half of edge
+    a = sin(0.5*pi-pi/polygonnum);      // the length from center to edge
+    EdgeLength = a*tan(pi/polygonnum);  // the length of half of edge
+    rmin = 2.2;             // Distance criterion for Psi6
+    rmin2 = 2.5*a;            // Distance criterion for F
+    ctestv = 0.32;
     n_rows = Resolution;
     n_cols = Resolution;
     dx1 = 1.0/Resolution;
@@ -32,23 +33,24 @@ void Model_QuadrupoleMC::createInitialState() {
     std::stringstream FileStr;
     FileStr << this->fileCounter;
 //    this->readxyz("./StartMeshgridFolder/startmeshgrid" + FileStr.str() + ".txt");
-    this->readxyz("./StartMeshgridFolder/startmeshgrid1.txt"); // load initial particle configuration
+    this->readxyz("./StartMeshgridFolder/startmeshgrid1.txt");
     std::stringstream ss;
     ss << this->fileCounter++;
     if (trajOs.is_open()) trajOs.close();
     if (opOs.is_open()) opOs.close();
-    this->trajOs.open(filetag + "xyz_" + ss.str() + ".dat"); // file for coordinate record
-    this->opOs.open(filetag + "op" + ss.str() + ".dat"); // file for order parameter record
+    this->trajOs.open(filetag + "xyz_" + ss.str() + ".dat");
+    this->opOs.open(filetag + "op" + ss.str() + ".dat");
     this->timeCounter = 0;
     coord temp;
     for (int i = 0; i < np; i++){ // Coordinate of edges and particle zone
+        Polygon[i].edge.clear();
         Polygon[i].DisLoc.x = floor(Polygon[i].center.x/(60/IndexR) + IndexR/2);
         Polygon[i].DisLoc.y = floor(Polygon[i].center.y/(60/IndexR) + IndexR/2);
-        for (int j = 0; j < 3; j++){
+        for (int j = 0; j < polygonnum; j++){
             temp.x = Polygon[i].center.x + a*cos(Polygon[i].rot - pi/2 + j*Angle*pi);
             temp.y = Polygon[i].center.y + a*sin(Polygon[i].rot - pi/2 + j*Angle*pi);
             Polygon[i].edge.push_back(temp);
-        }
+    }
     }
     for (int i = 0; i < np - 1; i++){
         for (int j = i+1; j < np; j++){
@@ -59,10 +61,7 @@ void Model_QuadrupoleMC::createInitialState() {
             }            
         }
     }
-    this->runHelper(0,3);
-    this->currState[0] = psi6;
-    this->currState[1] = rg;
-    this->currState[2] = F;
+    this->runCore(0,3);
 }
 
 void Model_QuadrupoleMC::readxyz(const std::string filename) {
@@ -77,7 +76,7 @@ void Model_QuadrupoleMC::readxyz(const std::string filename) {
         linestream >> dum;
         linestream >> Polygon[i].center.x;
         linestream >> Polygon[i].center.y;
-        linestream >> dum;
+//        linestream >> dum;
         linestream >> Polygon[i].rot;
     }
     is.close();
@@ -89,6 +88,10 @@ void Model_QuadrupoleMC::outputTrajectory(std::ostream& os) {
         os << Polygon[i].center.x << "\t";
         os << Polygon[i].center.y << "\t";
         os << Polygon[i].rot<< "\t";
+        os << Polygon[i].Psi << "\t";
+        os << Polygon[i].C << "\t";
+        os << Polygon[i].Rg << "\t";
+        os << Polygon[i].F << "\t";
         os << std::endl;
     }
 }
@@ -96,6 +99,7 @@ void Model_QuadrupoleMC::outputTrajectory(std::ostream& os) {
 void Model_QuadrupoleMC::outputOrderParameter(std::ostream& os) {
     os << this->timeCounter << "\t";
     os << psi6 << "\t";
+    os << C << "\t";
     os << rg << "\t";
     os << F << "\t";
     os << opt << "\t";
@@ -108,30 +112,25 @@ double Model_QuadrupoleMC::getRewards() {
         this->reward = 0;
         return reward;
     } else {
-        this->reward = -(1 - (currState[0]+currState[2])/2);
+        this->reward = -(1 - currState[0]);
         return reward;
     }
 }
 
 bool Model_QuadrupoleMC::terminate() {
-    if (currState[0] > 0.99 && currState[2] > 0.99) {return true;}
+    if (currState[0] > 0.99) {return true;}
     return false;
 }
 
 void Model_QuadrupoleMC::run(int action) {
 /* Takes in the control option and run the dynamics for 1s*/
     this->opt = action;
-    this->outputTrajectory(this->trajOs);
-    this->outputOrderParameter(this->opOs);
-    this->runHelper(nstep,opt);
     this->prevState = this->currState;
-    this->currState[0] = psi6;
-    this->currState[1] = rg;
-    this->currState[2] = F;
+    this->runCore(nstep,opt);
     this->timeCounter++;
 }
 
-void Model_QuadrupoleMC::runHelper(int nstep, int controlOpt) {
+void Model_QuadrupoleMC::runCore(int nstep, int controlOpt) {
 // Covert control option to lambda and run MC simulation for 1s in 1e5 steps
     switch (controlOpt)
     {
@@ -151,10 +150,21 @@ void Model_QuadrupoleMC::runHelper(int nstep, int controlOpt) {
             lambda = 1;
             break;
     }
+    
     for (int step = 0; step < nstep; step++) {
         this->MonteCarlo();
     }
-    this->calOp();
+    
+    this->calPsi();
+    this->calRg();
+    this->calF();
+    this->calC();
+    this->currState[0] = psi6;
+    this->currState[1] = rg;
+    this->currState[2] = F;
+    this->currState[2] = C;
+    this->outputTrajectory(this->trajOs);
+    this->outputOrderParameter(this->opOs);
 }
 
 void Model_QuadrupoleMC::MonteCarlo(){
@@ -167,60 +177,67 @@ void Model_QuadrupoleMC::MonteCarlo(){
  * Polygon[i] will be reset to TempPolygon when:
  *  1.  the movement causes overlap between particle i and other particles, or
  *  2.  the movement causes an increase in the total energy of the ensemble, and the
- *      movement is rejected following a Boltzmann distribution. */
+ *      movement is rejected following a Boltzmann distribution. 
+ */
     
     double Driftx, Drifty, RandDriftx, RandDrifty, RandRot;
     for (int i = 0; i < np; i++){
-        // Save the current position into TempPolygon, and calculate the new position
+// The velocity of each particle (translational and rotational)
         particle TempPolygon = Polygon[i];
         Driftx = -Polygon[i].center.x*lambda*dt*DiffTrans;
         Drifty = -Polygon[i].center.y*lambda*dt*DiffTrans;
         RandDriftx = (*rand_normal)(rand_generator);
         RandDrifty = (*rand_normal)(rand_generator);
         RandRot = (*rand_normal)(rand_generator);
-        Polygon[i].center.x = Polygon[i].center.x + Driftx ;
-        Polygon[i].center.y = Polygon[i].center.y + Drifty ;
-//        Polygon[i].rot = Polygon[i].rot + RandRot*sqrt(DiffRot*2.0*dt);
+
+// Update new structure in Polygon
+        Polygon[i].center.x += Driftx + RandDriftx*sqrt(DiffTrans*2.0*dt);
+        Polygon[i].center.y += Drifty + RandDrifty*sqrt(DiffTrans*2.0*dt);
+        Polygon[i].rot += RandRot*sqrt(DiffRot*2.0*dt);
         Polygon[i].DisLoc.x = floor(Polygon[i].center.x/(60/IndexR) + IndexR/2);
         Polygon[i].DisLoc.y = floor(Polygon[i].center.y/(60/IndexR) + IndexR/2);
-        for (int edge = 0; edge < 3; edge++){
+        for (int edge = 0; edge < polygonnum; edge++){
             Polygon[i].edge.at(edge).x = Polygon[i].center.x + a*cos(Polygon[i].rot - pi/2 + edge*Angle*pi);
             Polygon[i].edge.at(edge).y = Polygon[i].center.y + a*sin(Polygon[i].rot - pi/2 + edge*Angle*pi);
         }
-        // Check overlap, return false if no overlap
-        bool OverLap = false;
-        for (int ii = 0; ii < np; ii++){
-            if (ii != i && fabs(Polygon[ii].DisLoc.x -Polygon[i].DisLoc.x) <= 3  
-                    && fabs(Polygon[ii].DisLoc.y -Polygon[i].DisLoc.y) <= 3){
-                double tempdist = sqrt(pow((Polygon[ii].center.x - Polygon[i].center.x ),2.0) + 
-                       pow((Polygon[ii].center.y - Polygon[i].center.y),2.0));   
+        
+        // Check overlap and energy change
+        bool OverLap = false;   // true = overlap occurs 
+        bool move = true;       // true = energy prefers movement    
+        // Check particles that are within 4 blocks from particle i
+        for (int j = 0; j < np; j++){
+            if (j != i && 
+                    sqrt(pow((Polygon[j].DisLoc.x-Polygon[i].DisLoc.x),2.0)) < 4 && 
+                    sqrt(pow((Polygon[j].DisLoc.y-Polygon[i].DisLoc.y),2.0)) < 4){
+                double tempdist = sqrt(pow((Polygon[j].center.x - Polygon[i].center.x ),2.0) + 
+                       pow((Polygon[j].center.y - Polygon[i].center.y),2.0));   
                 if (tempdist < 2*a){
                     OverLap = true;
-                    break;
-                }else if (this->CheckOverlap(Polygon[i],Polygon[ii]) == true){
+                }
+                if (this->CheckOverlap(Polygon[i],Polygon[j]) == true){
                     OverLap = true;
-                    break;
                 }                
             }
-            if (OverLap == true){break;}
         }
-        // If no overlap, test potential energy change
-        if (OverLap == false){
+        
+// If no overlap, accept the move at the ratio of Boltzmann distribution    
+        if ( OverLap == false){
             double PotentialDiff = 
-            (pow(Polygon[i].center.x,2.0) + pow(Polygon[i].center.y,2.0)) 
-           - (pow(TempPolygon.center.x,2.0) + pow(TempPolygon.center.y,2.0));
-            // If the potential decreases the movement is accepted; otherwise
-            // the step is accepted at a probability following Boltzmann distribution
+            (pow(Polygon[i].center.x,2.0) + pow(Polygon[i].center.y,2.0)) - 
+            (pow(TempPolygon.center.x,2.0) + pow(TempPolygon.center.y,2.0));
             if (PotentialDiff > 0){
-               double RanGen = rand_uniform(rand_generator);
-               double BoltzmannDist = 
-               exp(-0.5*lambda*((pow(Polygon[i].center.x,2.0) + pow(Polygon[i].center.y,2.0))
-               - (pow(TempPolygon.center.x,2.0) + pow(TempPolygon.center.y,2.0))));
-               if (RanGen < BoltzmannDist){
-                   Polygon[i] = TempPolygon;
-               }
+                double RanGen = rand_uniform(rand_generator);
+                double BoltzmannDist = exp(-0.5*lambda*
+                ((pow(Polygon[i].center.x,2.0) + pow(Polygon[i].center.y,2.0)) - 
+                (pow(TempPolygon.center.x,2.0) + pow(TempPolygon.center.y,2.0))));
+                if (RanGen >= BoltzmannDist){
+                    move = false;
+                }
             }
-        } else {
+        }
+        
+// If particles overlap, or if energy is not favored, then restore to original state
+        if (OverLap == true || move == false){
             Polygon[i] = TempPolygon;
         }
     }
@@ -238,8 +255,10 @@ bool Model_QuadrupoleMC::CheckOverlap(particle i, particle j){
                 Det = -cos(i.rot+ii*Angle*pi)*sin(j.rot+jj*Angle*pi)
                         + cos(j.rot+jj*Angle*pi)*sin(i.rot+ii*Angle*pi);
                 if (Det != 0.0){
-                    Det1 = -Diffx*sin(j.rot + jj*Angle*pi) + Diffy*cos(j.rot + jj*Angle*pi);
-                    Det2 = Diffy*cos(i.rot + ii*Angle*pi) - Diffx*sin(i.rot + ii*Angle*pi); 
+                    Det1 = -Diffx*sin(j.rot + jj*Angle*pi) + 
+                            Diffy*cos(j.rot + jj*Angle*pi);
+                    Det2 = Diffy*cos(i.rot + ii*Angle*pi) - 
+                            Diffx*sin(i.rot + ii*Angle*pi); 
                     Frac1 = fabs(Det1/Det);
                     Frac2 = fabs(Det2/Det);
                     if (Frac1 <= EdgeLength && Frac2 <= EdgeLength){
@@ -252,123 +271,170 @@ bool Model_QuadrupoleMC::CheckOverlap(particle i, particle j){
     return false;
 }
 
-void Model_QuadrupoleMC::calOp() {
+void Model_QuadrupoleMC::calPsi() {
 
-    int neighbor[np];
+    int nb[np];
     double psir[np], psii[np], scale;
-    double rgmean, accumpsi6r, accumpsi6i;
+    double accumpsi6r, accumpsi6i;
     
-    if (polygonnum == 3) {scale = 6.0;} 
-    else if (polygonnum == 4){scale = 4.0;} 
-    else if (polygonnum == 6){scale = 6.0;} 
-    else {scale = 1.0;}
-    // Calculate Psi6
-    for (int i = 0; i < np; i++){
-        neighbor[i] = 0;
+    switch (polygonnum)
+    {
+        case 3:
+            scale = 6.0;
+            break;
+        case 4:
+            scale = 4.0;
+            break;
+        case 6:
+            scale = 6.0;
+            break;
+        default:
+            scale = 1.0;
+            break;
+    }
+// Initialization
+    psi6 = 0;
+    accumpsi6r = 0;
+    accumpsi6i = 0;
+    for (int i = 0; i < np; i++) {
+        nb[i] = 0;
         psir[i] = 0.0;
         psii[i] = 0.0;
-        accumpsi6r = 0;
-        accumpsi6i = 0;
+        Polygon[i].Psi = 0.0;
     }
-    for (int i = 0; i < np-1; i++) {
-        for (int j = i+1; j < np; j++) {
-            double RP = sqrt(pow((Polygon[i].center.x-Polygon[j].center.x),2.0) 
-            + pow((Polygon[i].center.y-Polygon[j].center.y),2.0));
-            if (RP <= rmin) {
-                neighbor[i] += 1;
-                neighbor[j] += 1;
-                psir[i] += cos(scale * Polygon[j].rot);
-                psii[i] += sin(scale * Polygon[j].rot);
-                psir[j] += cos(scale * Polygon[i].rot);
-                psii[j] += sin(scale * Polygon[i].rot);
-            }
+// calculate local psi6 in complex form
+    for (int i = 0; i < np; i++) {
+        for (int j = 0; j < np; j++) {
+            if (i != j) {
+                double RP = sqrt(
+                pow((Polygon[i].center.x-Polygon[j].center.x),2.0) + 
+                pow((Polygon[i].center.y-Polygon[j].center.y),2.0));
+                if (RP <= rmin) {
+                    nb[i] += 1;
+                    psir[i] += cos(scale * Polygon[j].rot);
+                    psii[i] += sin(scale * Polygon[j].rot);
+                }
+            }        
         }
     }
     for (int i = 0; i < np; i++){
-        if (neighbor[i] != 0) {
-            psir[i] /=  neighbor[i];
-            psii[i] /=  neighbor[i];
+        if (nb[i] > 0) {
+            psir[i] /=  nb[i];
+            psii[i] /=  nb[i];
         }
+        Polygon[i].Psi = sqrt(psir[i]*psir[i] + psii[i]*psii[i]);
     }
-
+// Calculate global psi
     for (int i = 0; i < np; i++) {
         accumpsi6r += psir[i];
         accumpsi6i += psii[i];
     }
     accumpsi6r /= np;
     accumpsi6i /= np;
-    psi6 = sqrt(pow(accumpsi6r,2.0) + pow(accumpsi6i,2.0));
-    
-    // Calculate Rg
-    coord mean;
-    mean.x = 0;
-    mean.y = 0;
+    psi6 = sqrt(accumpsi6r * accumpsi6r + accumpsi6i * accumpsi6i);
+}
+
+void Model_QuadrupoleMC::calRg() {
+    double rgmean, xmean, ymean;
+// Initialization
+    xmean = 0;
+    ymean = 0;
     rgmean = 0;
+// Calculate mean coordinate
     for (int i = 0; i < np; i++) {
-        mean.x += Polygon[i].center.x;
-        mean.y += Polygon[i].center.x;
+        xmean += Polygon[i].center.x;
+        ymean += Polygon[i].center.y;
     }
-    mean.x /= np;
-    mean.y /= np;
+    xmean /= np;
+    ymean /= np;
+// Calculate local rg
     for (int i = 0; i < np; i++) {
-        rgmean += pow((Polygon[i].center.x - mean.x),2) + pow((Polygon[i].center.y - mean.y),2);
+         Polygon[i].Rg = sqrt(pow(
+                (Polygon[i].center.x - xmean),2) + 
+                pow((Polygon[i].center.y - ymean),2));
+         rgmean += (Polygon[i].Rg*Polygon[i].Rg)/np;
+        
     }
-    rgmean /= np;
+// Calculate global rg
     rg = sqrt(rgmean);
-    
+}
+
+void Model_QuadrupoleMC::calF() {
     /* New Order Parameter F.
-     * 1.   The center-center distance must be shorter than 1.5
-     * 2.   The angle between center-center and edge-norm vector is smaller than 0.7559
-     * 
+     * 1.   The center-center distance must be shorter than 2.5a
+     * 2.   Particle 2 must "face" an edge of particle 1 
+     * 3.   Particle 2 must has an edge close to the edge of particle 1
      */
     coord VecCC, Norm1, VecEE, Norm2, VecE1, VecE2;
-    double DistCC,angle, Elevation, Misalign, Overlap;
-//    Initialize LocF: F values of each particles, and NeighborF: number of surroudings
+    double DistCC,angle, Elevation, Misalign, Overlap, Interception;
+    int NeighborF[np];
+    
+    switch (polygonnum)
+    {
+        case 3:
+             Interception = 1/(sqrt(7)/2);
+	     break;
+        case 4:
+	    Interception = sqrt(2.0)/(sqrt(5.0)/sqrt(2.0));
+	    break;
+        case 6:
+            Interception = sqrt(3.0)/(sqrt(13)/2);
+	     break;
+        default:
+            Interception = sqrt(3.0)/2.0;
+	     break;
+    }
+// Initialization
     F = 0;
     for (int i = 0; i < np; i++){
-        LocF[i] = 0.0;
+        Polygon[i].F = 0.0;
         NeighborF[i] = 0;        
     }
+// Calculate local F
     for (int i = 0; i < np; i++){
         for (int j = i+1; j < np; j++){
             // Center-center distance of two particles, if close enough, calculate overlap
             DistCC = sqrt(pow((Polygon[i].center.x-Polygon[j].center.x),2.0) 
                     + pow((Polygon[i].center.y-Polygon[j].center.y),2.0));
-            if (DistCC < 1.5){
-//                Vector connecting two particle centers
+            if (DistCC < rmin2){
+                // Vector connecting two particle centers
                 VecCC.x = (Polygon[j].center.x-Polygon[i].center.x);
                 VecCC.y = (Polygon[j].center.y-Polygon[i].center.y);
-                for (int ii = 0; ii < 3; ii++){ // each edge of particle 1
-//                    normal vector of each edge of particle 1
+                for (int ii = 0; ii < polygonnum; ii++){
+                    // normal vector of each edge of particle 1
                     Norm1.x = (Polygon[i].edge.at(ii).x - Polygon[i].center.x)/a;
                     Norm1.y = (Polygon[i].edge.at(ii).y - Polygon[i].center.y)/a;
-//                    cosine of angle between Norm1 and VecCC
+                    // Angle between Norm1 and VecCC
                     angle = (Norm1.x*VecCC.x + Norm1.y*VecCC.y)
                             /sqrt(VecCC.x*VecCC.x + VecCC.y*VecCC.y);
-                    if (angle >= 0.7559){
-//                        theta = Polygon[i].rot + ii*Angle*pi;
-                        for (int jj = 0; jj < 3; jj++){ // each edge of particle 2
+                    if (angle >= Interception){
+                        for (int jj = 0; jj < polygonnum; jj++){
+                            // Edge - edge vector between all edges
                             VecEE.x = Polygon[j].edge.at(jj).x - Polygon[i].edge.at(ii).x;
                             VecEE.y = Polygon[j].edge.at(jj).y - Polygon[i].edge.at(ii).y;
+                            // normal vector of each edge of particle 2
                             Norm2.x = (Polygon[j].edge.at(jj).x - Polygon[j].center.x)/a;
                             Norm2.y = (Polygon[j].edge.at(jj).y - Polygon[j].center.y)/a;
+                            // Vertical distance between two edges
                             Elevation = std::max(
                                     fabs(VecEE.x*Norm1.x+VecEE.y*Norm1.y), 
                                     fabs(VecEE.x*Norm2.x+VecEE.y*Norm2.y));
-                            if (Elevation < 0.3){
+                            if (Elevation < a){
+                                // Parallel vectors of each edge of each particle                 
                                 VecE1.x = cos(Polygon[i].rot + ii*Angle*pi);
                                 VecE1.y = sin(Polygon[i].rot + ii*Angle*pi);
                                 VecE2.x = cos(Polygon[j].rot + jj*Angle*pi);
                                 VecE2.y = sin(Polygon[j].rot + jj*Angle*pi);
+                                // distance between edge center on edge directions
                                 Misalign = std::max(
                                         fabs(VecEE.x*VecE1.x + VecEE.y*VecE1.y),
                                         fabs(VecEE.x*VecE2.x + VecEE.y*VecE2.y));
-                                if (Misalign <= EdgeLength){
+                                if (Misalign <= 1.2*EdgeLength){
                                     Overlap = 1 - Misalign/EdgeLength;
                                     NeighborF[i] += 1;
                                     NeighborF[j] += 1;
-                                    LocF[i] += Overlap;
-                                    LocF[j] += Overlap;
+                                    Polygon[i].F += Overlap;
+                                    Polygon[j].F += Overlap;
                                     break;
                                 }
                             }
@@ -378,11 +444,86 @@ void Model_QuadrupoleMC::calOp() {
             }
         }
     }
+// Calculate global F
     for (int i = 0; i < np; i++){
         if (NeighborF[i] != 0){
-            LocF[i] /= NeighborF[i];
-            F += LocF[i];
+            Polygon[i].F /= NeighborF[i];
+            F += Polygon[i].F/np;
         }
     }
-    F /= np;
+}
+
+void Model_QuadrupoleMC::calC() {
+
+    int neighbor[np];
+    double rxij, ryij, psir[np], psii[np], scale;
+    double numerator, denominator,testv;
+    
+    switch (polygonnum)
+    {
+        case 3:
+            scale = 6.0;
+            break;
+        case 4:
+            scale = 4.0;
+            break;
+        case 6:
+            scale = 6.0;
+            break;
+        default:
+            scale = 1.0;
+            break;
+    }
+// Initialize OP
+    C = 0.0;
+    for (int i = 0; i < np; i++){
+        neighbor[i] = 0;
+        psir[i] = 0.0;
+        psii[i] = 0.0;
+        Polygon[i].C = 0.0;
+    }
+// Calculate local psi6 in complex form
+    for (int i = 0; i < np; i++) {
+
+        for (int j = 0; j < np; j++) {
+            if (i != j) {
+                double RP = sqrt(
+                pow((Polygon[i].center.x-Polygon[j].center.x),2.0) + 
+                pow((Polygon[i].center.y-Polygon[j].center.y),2.0));
+                if (RP <= rmin) {
+                    neighbor[i] += 1;
+                    psir[i] += cos(scale * Polygon[j].rot);
+                    psii[i] += sin(scale * Polygon[j].rot);
+                }
+            }        
+        } 
+        if (neighbor[i] > 0) {
+            psir[i] /=  neighbor[i];
+            psii[i] /=  neighbor[i];
+        }
+    }
+// Calculate local C6
+    for (int i = 0; i < np; i++) {
+        for (int j = i + 1; j < np; j++) {
+            rxij = Polygon[j].center.x - Polygon[i].center.x;
+            ryij = Polygon[j].center.y - Polygon[i].center.y;
+            double RP = sqrt(
+                pow((Polygon[i].center.x-Polygon[j].center.x),2.0) + 
+                pow((Polygon[i].center.y-Polygon[j].center.y),2.0));
+            if (RP <= rmin) {
+                numerator = psir[i] * psir[j] + psii[i] * psii[j];
+                double temp = psii[i] * psir[j] - psii[j] * psir[i];
+                denominator = sqrt(numerator * numerator + temp*temp);
+                testv = numerator / denominator;
+                if (testv >= ctestv) {
+                    Polygon[i].C += 1/6;
+                    Polygon[j].C += 1/6;
+                }
+            }
+        }
+    }
+// Average local C to get global C6
+    for (int i = 0; i < np; i++){
+        C += Polygon[i].C/np;
+    }
 }

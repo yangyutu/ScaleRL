@@ -22,13 +22,12 @@ int main(int argc, char* argv[]) {
 /* The run command is of the form:
 *  test polygon_number:	Quench of single thread polygon of edge number as polygon_number;
 *  test thread_number polygon_number: Quench of multi-thread (thread_number) polygon of edge number as polygon_number;
-*  test qsolver.prototxt polygon_number: Reinforcement learning of single thread polygon of edge number as polygon_number;
 *  test qsolver.prototxt thread_number polygon_number: Reinforcement learning of multi-thread (thread_number) polygon of edge number as polygon_number;
 */
     if (argc == 2){
 	int polygon = boost::lexical_cast<int>(argv[1]);
 	int thread = 1;
-        std::cout << thread << " Thread Quench Simulation of "<< polygon << " polygon is starting.." << std::endl;
+        std::cout << thread << " Thread Quench Simulation of "<< polygon << " is starting.." << std::endl;
         Quench("traj/",polygon,thread);
     }else if ( argc == 3){
 	int thread = boost::lexical_cast<int>(argv[1]);
@@ -44,13 +43,13 @@ int main(int argc, char* argv[]) {
         std::cout << thread << " Thread Reinforcement Learning Simulation of "<< polygon << " polygon is starting.." << std::endl;
         RLMT(argv[1],thread,polygon);
     } else { 
-        std::cout << "Wrong argument number" << std::endl;
+        std::cout << "WARNING: WRONG ARGUMENT NUMBER!" << std::endl;
     }
     return 0;
 }
 
 void Quench(std::string filename, int polygon, int thread_idx){
-    int cycle(1), second(1000);
+    int cycle(1), second(5);
     std::shared_ptr<BaseModel> model(new Model_QuadrupoleMC(filename,1,polygon));
     int iter;
     for (int i = 0; i < cycle; i++) {

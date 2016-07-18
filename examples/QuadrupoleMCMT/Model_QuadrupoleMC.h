@@ -38,45 +38,49 @@ protected:
         double rot;
         std::vector<coord> edge;
         index DisLoc;
+        double F,C,Rg,Psi;
     };
     
 // Constants    
-    static const int np = 300;
-    static const int np3 = 900;
-    static const int IndexR = 60;
+    static const int np = 10;   // Number of particles
+    static const int IndexR = 60;   // Number of discretize states
     const double pi = 3.1415925025939941;
+    
 // Variables
-    particle Polygon[np];
-    int n_rows, n_cols, polygonnum, ppp;
+
+    // Learning Map
+    int n_rows, n_cols;
     double dx1, dx2;
+    // Particle
+    particle Polygon[np];
     double Angle, EdgeLength, a;
-    int DiscretizedR[np][2];
+    double DiffTrans, DiffRot;
+    int polygonnum;
+    // Simulation/Control settings
     int opt;
-    double nstep;
+    double nstep, dt;
     int trajOutputInterval;
     int timeCounter,fileCounter;
-    bool trajOutputFlag;
     std::ofstream trajOs, opOs;
     std::string filetag;
     std::ofstream file;
-    double psi6, rg, F, lambda, rmin, rmin2, dt;
-    double DiffTrans, DiffRot;
     std::uniform_real_distribution<double> rand_uniform;
-    double LocF[np];
-    int NeighborF[np];
+
+    // OP and other state parameters
+    double psi6, rg, F, lambda, C;
+    double rmin, rmin2, ctestv;
     
+    // Functions
     void outputTrajectory(std::ostream& os);
     void outputOrderParameter(std::ostream& os);
     void readxyz(const std::string filename);
-    void readDiffusivity(const std::string filename);
-    void runHelper(int nstep, int opt);
+    void runCore(int nstep, int opt);
     void MonteCarlo();
     bool CheckOverlap(particle i, particle j);
-    void calOp();
-    void calDss();
-    void UpdateIndex(int i);
-    double Determinant(double v1, double v2, double v3, double v4);
-    void UpdatePolygon(int i);
+    void calPsi();
+    void calRg();
+    void calF();
+    void calC();
 };
 }
 
