@@ -21,7 +21,7 @@ Model_QuadrupoleMC::Model_QuadrupoleMC(std::string filetag0,int Resolution, int 
     a = sin(0.5*pi-pi/polygonnum);      // the length from center to edge
     EdgeLength = a*tan(pi/polygonnum);  // the length of half of edge
     rmin = 2.2;             // Distance criterion for Psi6
-    rmin2 = 2.5*a;            // Distance criterion for F
+    rmin2 = 3*a;            // Distance criterion for F
     ctestv = 0.32;
     n_rows = Resolution;
     n_cols = Resolution;
@@ -89,9 +89,9 @@ void Model_QuadrupoleMC::outputTrajectory(std::ostream& os) {
         os << Polygon[i].center.y << "\t";
         os << Polygon[i].rot<< "\t";
         os << Polygon[i].Psi << "\t";
-        os << Polygon[i].C << "\t";
         os << Polygon[i].Rg << "\t";
         os << Polygon[i].F << "\t";
+        os << Polygon[i].C << "\t";
         os << std::endl;
     }
 }
@@ -99,9 +99,9 @@ void Model_QuadrupoleMC::outputTrajectory(std::ostream& os) {
 void Model_QuadrupoleMC::outputOrderParameter(std::ostream& os) {
     os << this->timeCounter << "\t";
     os << psi6 << "\t";
-    os << C << "\t";
     os << rg << "\t";
     os << F << "\t";
+    os << C << "\t";
     os << opt << "\t";
     os << lambda << "\t";
     os << std::endl;
@@ -118,7 +118,7 @@ double Model_QuadrupoleMC::getRewards() {
 }
 
 bool Model_QuadrupoleMC::terminate() {
-    if (currState[0] > 0.99) {return true;}
+    if (currState[0] > 0.99 && currState[2] > 0.90) {return true;}
     return false;
 }
 
@@ -162,7 +162,7 @@ void Model_QuadrupoleMC::runCore(int nstep, int controlOpt) {
     this->currState[0] = psi6;
     this->currState[1] = rg;
     this->currState[2] = F;
-    this->currState[2] = C;
+    this->currState[3] = C;
     this->outputTrajectory(this->trajOs);
     this->outputOrderParameter(this->opOs);
 }
@@ -207,8 +207,8 @@ void Model_QuadrupoleMC::MonteCarlo(){
         // Check particles that are within 4 blocks from particle i
         for (int j = 0; j < np; j++){
             if (j != i && 
-                    sqrt(pow((Polygon[j].DisLoc.x-Polygon[i].DisLoc.x),2.0)) < 4 && 
-                    sqrt(pow((Polygon[j].DisLoc.y-Polygon[i].DisLoc.y),2.0)) < 4){
+                    sqrt(pow((Polygon[j].DisLoc.x-Polygon[i].DisLoc.x),2.0)) < 3 && 
+                    sqrt(pow((Polygon[j].DisLoc.y-Polygon[i].DisLoc.y),2.0)) < 3){
                 double tempdist = sqrt(pow((Polygon[j].center.x - Polygon[i].center.x ),2.0) + 
                        pow((Polygon[j].center.y - Polygon[i].center.y),2.0));   
                 if (tempdist < 2*a){
@@ -448,9 +448,10 @@ void Model_QuadrupoleMC::calF() {
     for (int i = 0; i < np; i++){
         if (NeighborF[i] != 0){
             Polygon[i].F /= NeighborF[i];
-            F += Polygon[i].F/np;
+            F += Polygon[i].F;
         }
     }
+    F /= np;
 }
 
 void Model_QuadrupoleMC::calC() {
@@ -504,26 +505,27 @@ void Model_QuadrupoleMC::calC() {
     }
 // Calculate local C6
     for (int i = 0; i < np; i++) {
-        for (int j = i + 1; j < np; j++) {
+        for (int j = 0; j < np; j++) {
             rxij = Polygon[j].center.x - Polygon[i].center.x;
             ryij = Polygon[j].center.y - Polygon[i].center.y;
             double RP = sqrt(
                 pow((Polygon[i].center.x-Polygon[j].center.x),2.0) + 
                 pow((Polygon[i].center.y-Polygon[j].center.y),2.0));
-            if (RP <= rmin) {
+            if ((i != j)&& (RP <= rmin)) {
                 numerator = psir[i] * psir[j] + psii[i] * psii[j];
                 double temp = psii[i] * psir[j] - psii[j] * psir[i];
                 denominator = sqrt(numerator * numerator + temp*temp);
                 testv = numerator / denominator;
                 if (testv >= ctestv) {
-                    Polygon[i].C += 1/6;
-                    Polygon[j].C += 1/6;
+                    Polygon[i].C += 1;
                 }
             }
         }
     }
 // Average local C to get global C6
     for (int i = 0; i < np; i++){
-        C += Polygon[i].C/np;
+        Polygon[i].C /= 9;
+        C += Polygon[i].C;
     }
+    C /= np;
 }

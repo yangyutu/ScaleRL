@@ -42,7 +42,7 @@ protected:
     };
     
 // Constants    
-    static const int np = 10;   // Number of particles
+    static const int np = 100;   // Number of particles
     static const int IndexR = 60;   // Number of discretize states
     const double pi = 3.1415925025939941;
     
