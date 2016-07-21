@@ -38,11 +38,11 @@ protected:
         double rot;
         std::vector<coord> edge;
         index DisLoc;
-        double F,C,Rg,Psi;
+        double F,C,Rg,Psi,Chi;
     };
     
 // Constants    
-    static const int np = 100;   // Number of particles
+    static const int np = 300;   // Number of particles
     static const int IndexR = 60;   // Number of discretize states
     const double pi = 3.1415925025939941;
     
@@ -67,8 +67,8 @@ protected:
     std::uniform_real_distribution<double> rand_uniform;
 
     // OP and other state parameters
-    double psi6, rg, F, lambda, C;
-    double rmin, rmin2, ctestv;
+    double psi6, rg, F, lambda, C, Chi;
+    double rmin, rmin2, ctestv, rmin3;
     
     // Functions
     void outputTrajectory(std::ostream& os);
@@ -81,6 +81,7 @@ protected:
     void calRg();
     void calF();
     void calC();
+    void calChi();
 };
 }
 

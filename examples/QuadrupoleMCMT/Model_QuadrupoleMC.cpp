@@ -10,7 +10,7 @@ Model_QuadrupoleMC::Model_QuadrupoleMC(std::string filetag0,int Resolution, int 
     Angle = 2.0/polygonnum; // Degree of symmetry
     nstep = 10000;          // Number of steps recurse in each time intervial (1s)
     dt = 1000.0/nstep;      // Time of each step recursed (1ms)
-    stateDim = 4;           // State of polygon configuration in Ps6, Rg, F
+    stateDim = 5;           // State of polygon configuration in Ps6, Rg, F
     currState.resize(stateDim);
     prevState.resize(stateDim);
     numActions = 4;         // Number of voltages used
@@ -22,6 +22,7 @@ Model_QuadrupoleMC::Model_QuadrupoleMC(std::string filetag0,int Resolution, int 
     EdgeLength = a*tan(pi/polygonnum);  // the length of half of edge
     rmin = 2.2;             // Distance criterion for Psi6
     rmin2 = 3*a;            // Distance criterion for F
+    rmin3 = 2.2*a;          // Distance criterion for Chi
     ctestv = 0.32;
     n_rows = Resolution;
     n_cols = Resolution;
@@ -89,9 +90,12 @@ void Model_QuadrupoleMC::outputTrajectory(std::ostream& os) {
         os << Polygon[i].center.y << "\t";
         os << Polygon[i].rot<< "\t";
         os << Polygon[i].Psi << "\t";
+	os << psi6 << "\t";
         os << Polygon[i].Rg << "\t";
+	os << rg << "\t";
         os << Polygon[i].F << "\t";
         os << Polygon[i].C << "\t";
+        os << Polygon[i].Chi << "\t";
         os << std::endl;
     }
 }
@@ -102,6 +106,7 @@ void Model_QuadrupoleMC::outputOrderParameter(std::ostream& os) {
     os << rg << "\t";
     os << F << "\t";
     os << C << "\t";
+    os << Chi << "\t";
     os << opt << "\t";
     os << lambda << "\t";
     os << std::endl;
@@ -159,10 +164,12 @@ void Model_QuadrupoleMC::runCore(int nstep, int controlOpt) {
     this->calRg();
     this->calF();
     this->calC();
+    this->calChi();
     this->currState[0] = psi6;
     this->currState[1] = rg;
     this->currState[2] = F;
     this->currState[3] = C;
+    this->currState[4] = Chi;
     this->outputTrajectory(this->trajOs);
     this->outputOrderParameter(this->opOs);
 }
@@ -431,6 +438,9 @@ void Model_QuadrupoleMC::calF() {
                                         fabs(VecEE.x*VecE2.x + VecEE.y*VecE2.y));
                                 if (Misalign <= 1.2*EdgeLength){
                                     Overlap = 1 - Misalign/EdgeLength;
+                                    if (Overlap <= 0){
+                                        Overlap = 0;
+                                    }
                                     NeighborF[i] += 1;
                                     NeighborF[j] += 1;
                                     Polygon[i].F += Overlap;
@@ -506,8 +516,6 @@ void Model_QuadrupoleMC::calC() {
 // Calculate local C6
     for (int i = 0; i < np; i++) {
         for (int j = 0; j < np; j++) {
-            rxij = Polygon[j].center.x - Polygon[i].center.x;
-            ryij = Polygon[j].center.y - Polygon[i].center.y;
             double RP = sqrt(
                 pow((Polygon[i].center.x-Polygon[j].center.x),2.0) + 
                 pow((Polygon[i].center.y-Polygon[j].center.y),2.0));
@@ -524,8 +532,27 @@ void Model_QuadrupoleMC::calC() {
     }
 // Average local C to get global C6
     for (int i = 0; i < np; i++){
-        Polygon[i].C /= 9;
+        Polygon[i].C /= 10;
         C += Polygon[i].C;
     }
     C /= np;
+}
+
+void Model_QuadrupoleMC::calChi() {
+    for (int i = 0; i < np; i++){
+        for (int j = i + 1; j < np; j++){
+            double RP = sqrt(
+                pow((Polygon[i].center.x-Polygon[j].center.x),2.0) + 
+                pow((Polygon[i].center.y-Polygon[j].center.y),2.0));
+            if (RP <= rmin3){
+                Polygon[i].Chi += 1;
+                Polygon[j].Chi += 1;
+            }
+        }
+    }
+    for (int i = 0; i < np; i++){
+        Polygon[i].Chi /= 3;
+        Chi += Polygon[i].Chi;
+    }
+    Chi /=np;
 }
