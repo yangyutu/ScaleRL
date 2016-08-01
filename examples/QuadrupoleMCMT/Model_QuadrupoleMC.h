@@ -38,7 +38,7 @@ protected:
         double rot;
         std::vector<coord> edge;
         index DisLoc;
-        double F,C,Rg,Psi,Chi;
+        double F,C,Rg;
     };
     
 // Constants    

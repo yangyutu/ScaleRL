@@ -89,13 +89,10 @@ void Model_QuadrupoleMC::outputTrajectory(std::ostream& os) {
         os << Polygon[i].center.x << "\t";
         os << Polygon[i].center.y << "\t";
         os << Polygon[i].rot<< "\t";
-        os << Polygon[i].Psi << "\t";
 	os << psi6 << "\t";
-        os << Polygon[i].Rg << "\t";
 	os << rg << "\t";
         os << Polygon[i].F << "\t";
         os << Polygon[i].C << "\t";
-        os << Polygon[i].Chi << "\t";
         os << std::endl;
     }
 }
@@ -106,7 +103,6 @@ void Model_QuadrupoleMC::outputOrderParameter(std::ostream& os) {
     os << rg << "\t";
     os << F << "\t";
     os << C << "\t";
-    os << Chi << "\t";
     os << opt << "\t";
     os << lambda << "\t";
     os << std::endl;
@@ -117,13 +113,13 @@ double Model_QuadrupoleMC::getRewards() {
         this->reward = 0;
         return reward;
     } else {
-        this->reward = -(1 - currState[0]);
+        this->reward = -(1 - (currState[0]+currState[1])/2.0);
         return reward;
     }
 }
 
 bool Model_QuadrupoleMC::terminate() {
-    if (currState[0] > 0.99 && currState[2] > 0.90) {return true;}
+    if (currState[0] > 0.90 && currState[1] > 0.95) {return true;}
     return false;
 }
 
@@ -164,12 +160,11 @@ void Model_QuadrupoleMC::runCore(int nstep, int controlOpt) {
     this->calRg();
     this->calF();
     this->calC();
-    this->calChi();
-    this->currState[0] = psi6;
-    this->currState[1] = rg;
-    this->currState[2] = F;
+//    currState[0] is always F, currState[1] is the other OP
+    this->currState[0] = F;
+    this->currState[1] = psi6;
+    this->currState[2] = rg;
     this->currState[3] = C;
-    this->currState[4] = Chi;
     this->outputTrajectory(this->trajOs);
     this->outputOrderParameter(this->opOs);
 }
@@ -307,7 +302,6 @@ void Model_QuadrupoleMC::calPsi() {
         nb[i] = 0;
         psir[i] = 0.0;
         psii[i] = 0.0;
-        Polygon[i].Psi = 0.0;
     }
 // calculate local psi6 in complex form
     for (int i = 0; i < np; i++) {
@@ -329,7 +323,6 @@ void Model_QuadrupoleMC::calPsi() {
             psir[i] /=  nb[i];
             psii[i] /=  nb[i];
         }
-        Polygon[i].Psi = sqrt(psir[i]*psir[i] + psii[i]*psii[i]);
     }
 // Calculate global psi
     for (int i = 0; i < np; i++) {
@@ -536,23 +529,4 @@ void Model_QuadrupoleMC::calC() {
         C += Polygon[i].C;
     }
     C /= np;
-}
-
-void Model_QuadrupoleMC::calChi() {
-    for (int i = 0; i < np; i++){
-        for (int j = i + 1; j < np; j++){
-            double RP = sqrt(
-                pow((Polygon[i].center.x-Polygon[j].center.x),2.0) + 
-                pow((Polygon[i].center.y-Polygon[j].center.y),2.0));
-            if (RP <= rmin3){
-                Polygon[i].Chi += 1;
-                Polygon[j].Chi += 1;
-            }
-        }
-    }
-    for (int i = 0; i < np; i++){
-        Polygon[i].Chi /= 3;
-        Chi += Polygon[i].Chi;
-    }
-    Chi /=np;
 }
