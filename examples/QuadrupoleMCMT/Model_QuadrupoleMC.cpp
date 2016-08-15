@@ -3,11 +3,31 @@
 using namespace ReinforcementLearning;
 
 Model_QuadrupoleMC::Model_QuadrupoleMC(std::string filetag0,int Resolution, int polygon0) {
+//    File information
     filetag = filetag0;     // Path of output files
     polygonnum = polygon0;  // Number of polygon edges
+
+    //    Physical constants
     DiffTrans = 6.362e-5;   // Diffusivity of translational motion
     DiffRot = 4.772e-5;     // Diffusivity of rotational motion
     Angle = 2.0/polygonnum; // Degree of symmetry
+
+    // 1 is the length from center to corner
+    a = sin(0.5*pi-pi/polygonnum);      // the length from center to edge
+    EdgeLength = a*tan(pi/polygonnum);  // the length of half of edge
+    rmin = 2.2;             // Distance criterion for Psi6
+    rmin2 = 3*a;            // Distance criterion for F
+    rmin3 = 2.2*a;          // Distance criterion for Chi
+    ctestv = 0.32;          // Distance criterion for C6
+    epsilon = 8.854e-12*80; // Dielectric permittivity of water [SI]
+    kT = 1.38e-23*293;      // Boltzmann Constant * temperature [SI]
+    e = 1.6e-19;            // Elementary charge [C]
+    z = 50e-3;              // Surface charge potential [V]
+    fcm = -0.4667;
+    dg = 100/1.5;
+    OSM = 0.0149;
+
+    //    Simulation parameters
     nstep = 10000;          // Number of steps recurse in each time intervial (1s)
     dt = 1000.0/nstep;      // Time of each step recursed (1ms)
     stateDim = 5;           // State of polygon configuration in Ps6, Rg, F
@@ -15,19 +35,12 @@ Model_QuadrupoleMC::Model_QuadrupoleMC(std::string filetag0,int Resolution, int 
     prevState.resize(stateDim);
     numActions = 4;         // Number of voltages used
     fileCounter = 0;        // Cycle number in each thread
-    rand_normal = std::make_shared<std::normal_distribution<double>>(0.0, 1.0);
-    rand_uniform = std::uniform_real_distribution<double> (0, 1);
-    // 1 is the length from center to corner
-    a = sin(0.5*pi-pi/polygonnum);      // the length from center to edge
-    EdgeLength = a*tan(pi/polygonnum);  // the length of half of edge
-    rmin = 2.2;             // Distance criterion for Psi6
-    rmin2 = 3*a;            // Distance criterion for F
-    rmin3 = 2.2*a;          // Distance criterion for Chi
-    ctestv = 0.32;
     n_rows = Resolution;
     n_cols = Resolution;
     dx1 = 1.0/Resolution;
     dx2 = 1.0/Resolution;
+    rand_normal = std::make_shared<std::normal_distribution<double>>(0.0, 1.0);
+    rand_uniform = std::uniform_real_distribution<double> (0, 1);
 }
 
 void Model_QuadrupoleMC::createInitialState() {
@@ -45,13 +58,19 @@ void Model_QuadrupoleMC::createInitialState() {
     coord temp;
     for (int i = 0; i < np; i++){ // Coordinate of edges and particle zone
         Polygon[i].edge.clear();
-        Polygon[i].DisLoc.x = floor(Polygon[i].center.x/(60/IndexR) + IndexR/2);
-        Polygon[i].DisLoc.y = floor(Polygon[i].center.y/(60/IndexR) + IndexR/2);
         for (int j = 0; j < polygonnum; j++){
             temp.x = Polygon[i].center.x + a*cos(Polygon[i].rot - pi/2 + j*Angle*pi);
             temp.y = Polygon[i].center.y + a*sin(Polygon[i].rot - pi/2 + j*Angle*pi);
             Polygon[i].edge.push_back(temp);
+        }
     }
+    for (int i = 0; i < np; i++){
+        for (int j = i + 1; j < np; j++){
+            if(Distance(Polygon[i],Polygon[j]) <= 5*a){
+                Polygon[i].Neighbor.push_back(j);
+                Polygon[j].Neighbor.push_back(i);
+            }
+        }
     }
     for (int i = 0; i < np - 1; i++){
         for (int j = i+1; j < np; j++){
@@ -151,16 +170,18 @@ void Model_QuadrupoleMC::runCore(int nstep, int controlOpt) {
             lambda = 1;
             break;
     }
-    
+    // Run 1s of simulation in nstep steps; update the neighbor every 100 loops
     for (int step = 0; step < nstep; step++) {
         this->MonteCarlo();
+        if ((step+1)%100 == 0){
+            UpdateNeighbor();
+        }
     }
-    
+    // Output order parameters and trajectories
     this->calPsi();
     this->calRg();
     this->calF();
     this->calC();
-//    currState[0] is always F, currState[1] is the other OP
     this->currState[0] = F;
     this->currState[1] = psi6;
     this->currState[2] = rg;
@@ -196,8 +217,6 @@ void Model_QuadrupoleMC::MonteCarlo(){
         Polygon[i].center.x += Driftx + RandDriftx*sqrt(DiffTrans*2.0*dt);
         Polygon[i].center.y += Drifty + RandDrifty*sqrt(DiffTrans*2.0*dt);
         Polygon[i].rot += RandRot*sqrt(DiffRot*2.0*dt);
-        Polygon[i].DisLoc.x = floor(Polygon[i].center.x/(60/IndexR) + IndexR/2);
-        Polygon[i].DisLoc.y = floor(Polygon[i].center.y/(60/IndexR) + IndexR/2);
         for (int edge = 0; edge < polygonnum; edge++){
             Polygon[i].edge.at(edge).x = Polygon[i].center.x + a*cos(Polygon[i].rot - pi/2 + edge*Angle*pi);
             Polygon[i].edge.at(edge).y = Polygon[i].center.y + a*sin(Polygon[i].rot - pi/2 + edge*Angle*pi);
@@ -205,47 +224,31 @@ void Model_QuadrupoleMC::MonteCarlo(){
         
         // Check overlap and energy change
         bool OverLap = false;   // true = overlap occurs 
-        bool move = true;       // true = energy prefers movement    
+        bool Energy_pref = true;       // true = energy prefers movement    
         // Check particles that are within 4 blocks from particle i
-        for (int j = 0; j < np; j++){
-            if (j != i && 
-                    sqrt(pow((Polygon[j].DisLoc.x-Polygon[i].DisLoc.x),2.0)) < 3 && 
-                    sqrt(pow((Polygon[j].DisLoc.y-Polygon[i].DisLoc.y),2.0)) < 3){
-                double tempdist = sqrt(pow((Polygon[j].center.x - Polygon[i].center.x ),2.0) + 
-                       pow((Polygon[j].center.y - Polygon[i].center.y),2.0));   
-                if (tempdist < 2*a){
-                    OverLap = true;
-                }
-                if (this->CheckOverlap(Polygon[i],Polygon[j]) == true){
-                    OverLap = true;
-                }                
+        for (std::vector<int>::iterator j = Polygon[i].Neighbor.begin(); j != Polygon[i].Neighbor.end(); ++j){
+            double tempdist = Distance(Polygon[i],Polygon[*j]);   
+            if (tempdist < 2*a){
+                OverLap = true;
             }
+            if (this->CheckOverlap(Polygon[i],Polygon[*j]) == true){
+                OverLap = true;
+            }                
         }
-        
-// If no overlap, accept the move at the ratio of Boltzmann distribution    
+// If overlap, the movement is retrieved; otherwise, the movement is accepted at
+// the probability of Boltzmann distribution
         if ( OverLap == false){
-            double PotentialDiff = 
-            (pow(Polygon[i].center.x,2.0) + pow(Polygon[i].center.y,2.0)) - 
-            (pow(TempPolygon.center.x,2.0) + pow(TempPolygon.center.y,2.0));
-            if (PotentialDiff > 0){
-                double RanGen = rand_uniform(rand_generator);
-                double BoltzmannDist = exp(-0.5*lambda*
-                ((pow(Polygon[i].center.x,2.0) + pow(Polygon[i].center.y,2.0)) - 
-                (pow(TempPolygon.center.x,2.0) + pow(TempPolygon.center.y,2.0))));
-                if (RanGen >= BoltzmannDist){
-                    move = false;
-                }
+            Energy_pref = CheckEnergy(Polygon[i], TempPolygon);
+            if (Energy_pref == false){ // retrieve move if energy unfavored
+                Polygon[i] = TempPolygon;
             }
-        }
-        
-// If particles overlap, or if energy is not favored, then restore to original state
-        if (OverLap == true || move == false){
+        } else {
             Polygon[i] = TempPolygon;
         }
     }
 }
 
-bool Model_QuadrupoleMC::CheckOverlap(particle i, particle j){
+inline bool Model_QuadrupoleMC::CheckOverlap(particle i, particle j){
 // check overlap between particle i and j, return false if no overlap
     double Diffx, Diffy, Dist, Det, Det1, Det2, Frac1, Frac2;
     for (int ii = 0; ii < polygonnum; ii++){
@@ -271,6 +274,43 @@ bool Model_QuadrupoleMC::CheckOverlap(particle i, particle j){
         }
     }
     return false;
+}
+
+inline bool Model_QuadrupoleMC::CheckEnergy(particle Pnew, particle Pold){
+    double EnergyDiff, Boltzmann, RanGen;
+    double U_pf_old, U_pf_new;
+    double U_dp_old, U_dp_new;
+    U_pf_old = 2*kT*lambda/fcm*4*sqrt(pow(Pold.center.x,2.0) + pow(Pold.center.y,2.0))/dg;
+    U_pf_new = 2*kT*lambda/fcm*4*sqrt(pow(Pnew.center.x,2.0) + pow(Pnew.center.y,2.0))/dg;
+    U_dp_old = 0;
+    U_dp_new = 0;
+    for (std::vector<int>::iterator j = Pold.Neighbor.begin(); j != Pold.Neighbor.end(); j++){
+        double r_old = Distance(Pold, Polygon[*j]);
+        double r_new = Distance(Pnew, Polygon[*j]);
+        if (r_old <= 1.2*a){
+            U_dp_old += -(4/3)*OSM*pi*1.2*a*pow(kT/e,3)*(1-0.75*r_old/(1.2*a)+0.0625*pow(r_old,3)/pow(1.2*a,3));
+        }
+        if (r_new <= 1.2*a){
+            U_dp_new += -(4/3)*OSM*pi*1.2*a*pow(kT/e,3)*(1-0.75*r_new/(1.2*a)+0.0625*pow(r_new,3)/pow(1.2*a,3));
+        }
+    }
+    EnergyDiff = (U_pf_new + U_dp_new) - (U_pf_old + U_dp_old);
+    if (EnergyDiff > 0)
+    {
+        Boltzmann = exp(-EnergyDiff/kT);
+        RanGen = rand_uniform(rand_generator);
+        if (RanGen <= Boltzmann)
+        { 
+            return true;
+        } 
+        else 
+        {
+            return false;
+        }
+    } else 
+    { 
+        return true;
+    }
 }
 
 void Model_QuadrupoleMC::calPsi() {
@@ -460,7 +500,7 @@ void Model_QuadrupoleMC::calF() {
 void Model_QuadrupoleMC::calC() {
 
     int neighbor[np];
-    double rxij, ryij, psir[np], psii[np], scale;
+    double psir[np], psii[np], scale;
     double numerator, denominator,testv;
     
     switch (polygonnum)
@@ -529,4 +569,24 @@ void Model_QuadrupoleMC::calC() {
         C += Polygon[i].C;
     }
     C /= np;
+}
+
+void Model_QuadrupoleMC::UpdateNeighbor(){
+    for (int i = 0; i < np; i++){
+        Polygon[i].Neighbor.clear();
+    }
+    for (int i = 0; i < np; i++){
+        for (int j = i + 1; j < np; j++){
+            if(Distance(Polygon[i],Polygon[j]) < 5*a){
+                Polygon[i].Neighbor.push_back(j);
+                Polygon[j].Neighbor.push_back(i);
+            }
+        }
+    }
+}
+
+double Model_QuadrupoleMC::Distance(particle i, particle j){
+    double dx = i.center.x - j.center.x;
+    double dy = i.center.y - j.center.y;
+    return sqrt(dx*dx + dy*dy);
 }

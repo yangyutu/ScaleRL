@@ -27,23 +27,18 @@ protected:
         double x;
         double y;
     };
-    struct index
-    {
-        int x;
-        int y;
-    };
     struct particle
     {
         coord center;
         double rot;
         std::vector<coord> edge;
-        index DisLoc;
         double F,C,Rg;
+        std::vector<int> Neighbor;
     };
     
 // Constants    
     static const int np = 300;   // Number of particles
-    static const int IndexR = 60;   // Number of discretize states
+    static const int IndexR = 4;   // Number of discretize states
     const double pi = 3.1415925025939941;
     
 // Variables
@@ -56,6 +51,9 @@ protected:
     double Angle, EdgeLength, a;
     double DiffTrans, DiffRot;
     int polygonnum;
+    // Potential Energy
+    double BPP, OSM;
+    double epsilon,kT,e,z, fcm, dg;
     // Simulation/Control settings
     int opt;
     double nstep, dt;
@@ -76,12 +74,15 @@ protected:
     void readxyz(const std::string filename);
     void runCore(int nstep, int opt);
     void MonteCarlo();
-    bool CheckOverlap(particle i, particle j);
+    inline bool CheckOverlap(particle i, particle j);
+    inline bool CheckEnergy(particle i, particle temp);
     void calPsi();
     void calRg();
     void calF();
     void calC();
     void calChi();
+    void UpdateNeighbor();
+    double Distance(particle i, particle j);
 };
 }
 
